@@ -17,6 +17,7 @@
 | T03M | 提供獨立 MP3／MP4 直接網址下載工具 | done | - | Python 標準函式庫 CLI、中文使用文件及 README 入口完成，17 項本機測試通過；不處理 YouTube、轉檔或 Unity 整合 |
 | T03Y | 加入獨立工具的 YouTube 支援 | done | T03M | 30 項測試通過，含真實本機 yt-dlp／FFmpeg 的三種模式；公開授權 YouTube 影片實際轉出 MP3 並以 ffprobe 驗證，未下載商業 MV |
 | T03S | 修正繁中選歌預設為空清單 | done | T03L | 四語 PlayMode 4 項通過，Windows 重建成功；隔離繁中設定實際顯示本機歌曲卡片，清單為「所有歌曲」，離開再進入仍可見；既有選單測試逾時另列 |
+| T03A | 本機製作三首中文譜面初稿 | done | - | 使用者提供歌詞並核准本機模型；三份 AI 初稿已加入私人歌庫，9 項工具檢查及 3 項實際遊戲解析檢查通過；不代表精修音高／同步或完整演唱驗收 |
 | T04 | 驗證未翻新遊戲流程 | blocked | T03 | 核心 PlayMode 測試等待 SingScene 逾時；需排除並在 player 完成選歌、收音、演唱、結算 |
 | T05 | 核對實際架構並更新 skills | pending | T04 | 確認 UI、音訊、評分、資料與連線邊界；研究假設與本機事實分開記錄 |
 | T06 | 盤點畫面與相容需求 | pending | T04 | 列出頁面、既有操作、輸入裝置、資料、在地化與失敗情境 |
@@ -32,6 +33,17 @@
 | T16 | 封裝 Windows 成品與交付文件 | pending | T15 | 成品在確認環境通過驗收；授權、啟動方法、限制及 skills 與交付一致 |
 
 ## 執行紀錄
+
+### T03A
+
+- 2026-10-24：使用者另行核准本機工具／模型下載，提供三份歌詞附件，要求替既有 MP3／MP4 產生 UltraStar TXT。這是一次性的私人歌庫處理，不是新增或宣稱遊戲內中文 AI 製譜功能已完成；沒有下載新商業影音、沒有上傳音訊／歌詞、沒有把私人譜面加入 repository。
+- 在既有 ignored `.venv` 安裝 CPU Torch／TorchAudio 2.8.0、Transformers 4.57.1、librosa 0.11、OpenCC、pypinyin 及 torchcrepe；`pip check` 通過。使用 TorchAudio HDemucs 分離人聲、Chinese Wav2Vec2 CTC 音節機率對齊原歌詞、pYIN 偵測音高；周杰倫版本另用 full CREPE 核對音高。模型與分析程式僅留在本機 cache／session，不修改 Unity、評分或網路功能。
+- 單字 ASR 在歌唱中常輸出同音異字，因此只在對齊時合併同音音節，不改使用者歌詞。〈聽見下雨的聲音〉的本機周杰倫 MV 重複了附件未再次列出的第二段主歌，已依影片把使用者原有文字重複排列；不是新增未提供的歌詞。第三首另記錄翹舌／鼻音對齊近似及人工核對的歌唱範圍。
+- 三份成品為 **AI 初稿**：〈嘉賓〉537 音符（42 自由唱）、〈看著我的眼睛說〉452 音符（34 自由唱）、〈聽見下雨的聲音〉296 音符（88 自由唱）。第三首雖只有 1 個音符無可靠音高，但另有 87 個字時間對齊信心低，明確以不計分的自由唱保留，不以虛構音高或低信心定位冒充完成品；僅 208 音符計分，仍需較多人工校正。
+- 每首資料夾新增中文歌手／歌名 TXT 及 `AI-chart-review.json`，逐項記錄低信心位置、音高變化、方法、來源 SHA-256 與限制。TXT 引用實際原媒體檔名；原影音、唯讀附件、其他歌曲及使用者設定未修改。
+- 9 項本機工具測試通過，涵蓋字序、BPM 四分音符換算、無重疊、拒絕覆寫、缺音高自由唱、品質不足不發布、明確 review 模式不對低信心音符評分及過半不確定仍拒絕。初稿先通過原 gate 的兩首才發布；第三首因時間定位仍不足而採明確 partial-scoring review 模式，不宣稱原始自動品質檢查全部通過。
+- 暫存 Editor fixture 以遊戲實際 `UltraStarSongParser` 讀取三份最終 TXT：**3 通過、0 失敗、0 略過**。驗證無 parser issues、中文名稱、媒體存在、537／452／296 音符、不同音高、正長度、不重疊與實際時間換算。命令為 `& $Unity -batchmode -projectPath '.\UltraStar Play' -runTests -testPlatform EditMode -testFilter LocalGeneratedChartValidation -testResults "$Evidence\three-chart-parser-results.xml" -logFile "$Evidence\three-chart-parser.log"`；暫存 fixture 驗證後已移至 session，沒有私人檔案路徑測試留在遊戲原始碼。
+- 每首抽取 6 個對齊位置與本機 MV 字幕比較，已核對兩首張遠的段落，以及修正後周杰倫版本的主歌／副歌／重複段／結尾；這是段落抽查，不是逐字或聽歌驗收。原生 UI 自動檢查兩次因無法取得前景視窗而安全中止，未送輸入至其他視窗；測試 player 均已關閉，使用者正在執行的 player 未停止，設定檔 hash 不變。不得把解析測試說成已實際唱完或已看見三張歌曲卡片。
 
 ### T03S
 
