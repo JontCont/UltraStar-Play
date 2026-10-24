@@ -55,6 +55,12 @@
 
 ## 演唱與評分
 
+### 歌曲掃描與播放清單預設值
+
+- 2026-10-24：使用者歌庫設定正確，但選歌頁空白。先修正本機譜面與實際 MP3／MP4 的檔名不符並補 cover，保留備份及所有音符／歌詞；該私人譜面不加入 repository。
+- 隔離原生成品仍重現空白，而記憶體 log 明確顯示 `Found 1 songs`，確認不是完全未掃描。`SongSelectionPlaylistChooserControl.UpdateItems` 把含翻譯名稱的「所有歌曲」與其他清單一起按字母排序，空的 `Favorites` 便成為繁中預設；`Reset` 與 toggle-back 也依賴首項。
+- 修復方向：以 `UltraStarAllSongsPlaylist` 型別固定首項，再按名稱排序其餘清單。保留明確選取的清單與 party-mode 歌池，不更改掃描、譜面解析或評分規則；加入四語選單回歸並重建 Windows 確認歌曲可見。
+
 ### 歌曲 ZIP 匯入
 
 - 2026-10-24：使用者回報下載官方 CC 歌曲包後出現 `Method not found: long ICSharpCode.SharpZipLib.Zip.ZipFile.get_Count()`。約 301 MB 的 ZIP 已存在本機，問題在解壓而非歌曲 URL 或下載權限。

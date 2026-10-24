@@ -40,6 +40,11 @@ pretrained_models/
 # Nuke build tool
 .nuke/
 
+# Python utility caches
+__pycache__/
+*.py[cod]
+.venv/
+
 # Secrets file (e.g. act tool to run GitHub Actions)
 .secrets
 

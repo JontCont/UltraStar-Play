@@ -14,6 +14,9 @@
 | T03L | 新增共用繁體中文 | done | T03, T03C | 783 項完整翻譯；兩端選單、格式／字形與設定序列化測試通過，Windows 已建置並實際顯示繁體主畫面；Companion 重啟限制另列 |
 | T03F | 修正中文設定頁缺字 | done | T03L | 10 個字型容量測試修前失敗、修後通過；主遊戲 30／Companion 24 項通過，Windows 設定與錄音頁及多次切換截圖驗證 |
 | T03Z | 修正下載歌曲 ZIP 匯入 | done | T03 | 10 個 PlayMode 案例通過、Windows 重建成功；原生 UI 匯入官方 301 MB 包，217 個檔案逐一 SHA-256 相符並登記歌庫路徑；獨立 test runner 限制另列 |
+| T03M | 提供獨立 MP3／MP4 直接網址下載工具 | done | - | Python 標準函式庫 CLI、中文使用文件及 README 入口完成，17 項本機測試通過；不處理 YouTube、轉檔或 Unity 整合 |
+| T03Y | 加入獨立工具的 YouTube 支援 | done | T03M | 30 項測試通過，含真實本機 yt-dlp／FFmpeg 的三種模式；公開授權 YouTube 影片實際轉出 MP3 並以 ffprobe 驗證，未下載商業 MV |
+| T03S | 修正繁中選歌預設為空清單 | in_progress | T03L | 所有歌曲不受翻譯排序影響而固定首項；四語清單選取／重設回歸及原生歌庫可見驗證 |
 | T04 | 驗證未翻新遊戲流程 | blocked | T03 | 核心 PlayMode 測試等待 SingScene 逾時；需排除並在 player 完成選歌、收音、演唱、結算 |
 | T05 | 核對實際架構並更新 skills | pending | T04 | 確認 UI、音訊、評分、資料與連線邊界；研究假設與本機事實分開記錄 |
 | T06 | 盤點畫面與相容需求 | pending | T04 | 列出頁面、既有操作、輸入裝置、資料、在地化與失敗情境 |
@@ -29,6 +32,25 @@
 | T16 | 封裝 Windows 成品與交付文件 | pending | T15 | 成品在確認環境通過驗收；授權、啟動方法、限制及 skills 與交付一致 |
 
 ## 執行紀錄
+
+### T03Y
+
+- 2026-10-24：使用者另外要求支援 YouTube，與 T03M 最初選擇的直接網址模式分開追蹤。獨立工具加入 watch／短網址／shorts／live／embed 辨識與 `--format mp3|mp4|both`（預設 both），移除追蹤與播放清單參數，保留既有直接下載行為。
+- 以 Python fact-grounded coding skill 核對現有程式與官方 yt-dlp／EJS 文件，新增 optional [依賴清單](../scripts/requirements-media.txt)，僅在 repository 的 `.venv` 安裝 yt-dlp 2026.10.21 及 EJS 0.8.0 等依賴。未改全域 Python 套件或 Pylance 選用的 Python 3.12；實際執行與測試為 `.venv` Python 3.11.9。
+- 本機 FFmpeg／ffprobe 8.1.1 與既有 Scoop NVM 的 Node 24.19.0 已可用，沒有另裝或切換 Node、沒有修改永久環境變數。依賴缺漏、無效網址、下載／轉檔失敗及既有同名檔案均明確報錯。
+- 使用獨立 staging，下載成功並確認輸出格式後才發布檔案，保留不覆寫與失敗清理；不載入使用者 yt-dlp 設定、plugins、瀏覽器 cookies，也不啟用遠端元件下載或 DRM／存取限制繞過。沒有整合 Unity、修改歌庫或產生譜面。
+- `.\.venv\Scripts\python.exe -B -m unittest discover -s scripts -p "test_download*.py" -v`：**30 通過、0 失敗、0 略過**。保留原 17 案，新增三種輸出、網址路由、依賴／輸出錯誤、兩格式中第二筆失敗不發布第一筆，以及 ffprobe 驗證的真實本機 yt-dlp／FFmpeg 合併／轉檔。
+- `.\.venv\Scripts\python.exe -B .\scripts\download_media.py --help` 成功。Pylance 兩份修改／新增 Python 檔語法檢查通過；diagnostics 無錯誤，只有 Windows 下非 Windows 分支與測試 callback 未使用參數的提示。
+- 在線以 `--skip-download --dump-single-json` 解析 Blender 官方影片 `aqz-KE-bpKQ`，取得 61 種格式；核對官方 CC BY 3.0 授權後，以實際下載函式完成 MP3 下載／轉檔，產物 **19,229,136 bytes**，ffprobe 確認 mp3。署名：`(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org`。測試影音僅放入自建暫存目錄並已自動清除，log 保存於 session 的 `youtube-cc-live-mp3.log`。
+- 公開測試片 `BaW_jenozKc` 回報 unavailable；Blender 來源出現未知 iamf codec 警告，但 MP3 成功，沒有隱藏警告或繞過失敗來源。未下載使用者的商業 MV、未宣稱該支影片可下載；實際 YouTube MP4 下載未另跑，MP4 的轉檔／合併由本機合成影音驗證。中文使用文件及繁體 README 入口已同步。
+
+### T03M
+
+- 2026-10-24：使用者選擇支援 MP3／MP4 的 HTTP(S) 直接下載網址，以及同時下載兩種檔案；此工具獨立於 Unity，不以演唱驗收或建置為前置。
+- 使用 Python fact-grounded coding skill，確認本機 Python 3.11.9；未安裝依賴、未修改遊戲或 Companion。新增 [下載工具](../scripts/download_media.py)、[測試](../scripts/test_download_media.py) 與 [中文文件](download-media.zh-TW.md)，繁體 README 提供入口。
+- 支援多網址、重新導向、中文檔名及串流寫檔；不覆寫既有檔案，檢查媒體檔頭及已知長度，錯誤明確回報並以非零代碼結束，當筆失敗／取消時清理暫存檔。保留原始媒體位元組，不轉檔、不產生譜面，也不解析 YouTube 網頁或繞過存取限制。
+- `python -B -m unittest discover -s scripts -p "test_download_media.py" -v`：17 通過、0 失敗。測試包含真正 CLI 子程序、兩種格式逐位元組比對、HTML／HTTP 錯誤、覆寫防護、逾時／取消及截斷清理；僅使用 loopback server 與自行產生的測試資料，沒有下載商業音樂或寫入使用者歌庫。
+- `python -B .\scripts\download_media.py --help`：成功；Git whitespace 檢查通過。未以本次腳本測試宣稱媒體可播放或核心演唱驗收完成。
 
 ### T03F
 

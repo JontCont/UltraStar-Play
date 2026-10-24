@@ -63,6 +63,13 @@ The user also approved Companion's Unity 6.6 and Built-In to URP migration. Keep
 - Validate tiny generated archives, invalid/missing archives, Unicode and nested paths, progress and traversal rejection. Then test the actual downloaded archive and the native packaged player; do not mark the fix complete from compilation or an Editor-only check.
 - Validated on Windows: 10 focused Editor PlayMode cases passed; the regular rebuilt player imported the cached official archive through its download UI over loopback, registered its folder, and produced 217 files matching the archive by SHA-256. The standalone test runner itself is blocked by existing PlayMode tests referencing unavailable `VisualElementTestUtils`; use the regular player for packaged evidence rather than hiding those compilation errors.
 
+## Song selection and playlist defaults
+
+- A scan finding songs does not prove they are visible: song selection applies search, playlist, property filters and folder navigation. Check the active playlist before treating an empty view as a parser failure.
+- `SongSelectionPlaylistChooserControl` uses the first item for default selection, reset and toggling back from a playlist. Keep `UltraStarAllSongsPlaylist` first by type, independent of its translated name; only sort the remaining playlists by name. Alphabetical sorting of all entries made `Favorites` precede Traditional Chinese's "All Songs" and hid every non-favorite on startup. Preserve explicit user and party-mode playlist selection.
+- Local charts must reference actual media filenames. Downloaders can generate a different name from `#MP3`/`#VIDEO`; correct the chart with a backup, not by changing timing or hiding missing media errors. Private song files and lyrics stay outside the repository.
+- Validate the chooser's initial selection, manual selection, reset and toggle-back in English, Japanese and both Chinese locales, then confirm the rebuilt native song-selection UI using isolated settings. Runtime logs may stop writing after the existing 250 MB daily cap; the development screen's Copy Log exposes current in-memory diagnostics without deleting user logs.
+
 ## When to add another architecture skill
 Add one only when a domain needs independently useful, verified procedures, such as audio calibration, shared UI controls, or Companion synchronization.
 

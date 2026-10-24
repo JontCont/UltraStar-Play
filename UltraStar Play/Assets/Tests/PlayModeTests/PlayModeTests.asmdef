@@ -11,6 +11,7 @@
         "Serilog",
         "UniRx",
         "com.achimmihca.uniinject",
+        "com.achimmihca.protrans",
         "com.achimmihca.primeinputactions",
         "playshared",
         "playshared.Editor.Tests",
