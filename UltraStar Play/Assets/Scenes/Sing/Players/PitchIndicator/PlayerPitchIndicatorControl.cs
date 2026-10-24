@@ -26,13 +26,16 @@ public class PlayerPitchIndicatorControl : INeedInjection, IInjectionFinishedLis
     [Inject]
     private Settings settings;
 
+    [Inject]
+    private PlayerProfile playerProfile;
+
     [Inject(Optional = true)]
     private MicProfile micProfile;
 
     private int lastPitchEventMidiNote;
     private int lastPitchEventBeat;
 
-    private bool IsPitchIndicatorVisible => settings.ShowPitchIndicator
+    private bool IsPitchIndicatorVisible => PlayerMicPitchTracker.IsPitchIndicatorEnabled(settings, playerProfile)
                                             && noteDisplayer is not NoNoteSingSceneDisplayer
                                             && micProfile != null;
 
@@ -40,6 +43,7 @@ public class PlayerPitchIndicatorControl : INeedInjection, IInjectionFinishedLis
     {
         settings.ObserveEveryValueChanged(it => it.ShowPitchIndicator)
             .Subscribe(_ => playerPitchIndicator.SetVisibleByDisplay(IsPitchIndicatorVisible));
+        playerPitchIndicator.SetVisibleByDisplay(IsPitchIndicatorVisible);
 
         if (micProfile != null)
         {

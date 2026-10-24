@@ -537,10 +537,17 @@ public class PlayerMicPitchTracker : AbstractMicPitchTracker
         return sampleBufferIndex;
     }
 
+    public static bool IsPitchIndicatorEnabled(Settings settings, PlayerProfile playerProfile)
+    {
+        // Easy mode always shows the pitch, so every beat must be analyzed.
+        return settings.ShowPitchIndicator
+               || playerProfile.Difficulty == EDifficulty.Easy;
+    }
+
     private void SetRecordingSentence(int sentenceIndex)
     {
         if (sentenceIndex == 0
-            && mainGameSettings.ShowPitchIndicator)
+            && IsPitchIndicatorEnabled(mainGameSettings, playerProfile))
         {
             // Start with very first beat, possibly before the lyrics start to update the pitch indicator.
             BeatToAnalyze = (int)SongMetaBpmUtils.MillisToBeats(songMeta, 0);
@@ -561,7 +568,7 @@ public class PlayerMicPitchTracker : AbstractMicPitchTracker
         }
         currentAndUpcomingNotesInRecordingSentence = SongMetaUtils.GetSortedNotes(RecordingSentence);
 
-        if (mainGameSettings.ShowPitchIndicator)
+        if (IsPitchIndicatorEnabled(mainGameSettings, playerProfile))
         {
             // Analyze all beats to update pitch indicator.
             BeatToAnalyze++;

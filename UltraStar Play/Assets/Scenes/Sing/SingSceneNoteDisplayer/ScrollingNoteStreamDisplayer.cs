@@ -11,6 +11,10 @@ using UnityEngine.UIElements;
 public class ScrollingNoteStreamDisplayer : AbstractSingSceneNoteDisplayer
 {
     private const float PitchIndicatorXPercent = 0.2f;
+    private const float RecordingPositionIndicatorTopPercent = 60f;
+    private const float RecordingPositionIndicatorHeightPercent = 40f;
+    private const float RecordingPositionIndicatorWidthInPixels = 3f;
+    private static readonly Color RecordingPositionIndicatorColor = new(1f, 0.85f, 0.2f, 0.9f);
     private const float DisplayedNoteDurationInSeconds = 5;
     private const float DisplayedNoteDurationInMillis = DisplayedNoteDurationInSeconds * 1000;
 
@@ -584,11 +588,12 @@ public class ScrollingNoteStreamDisplayer : AbstractSingSceneNoteDisplayer
     private VisualElement CreateRecordingPositionIndicator()
     {
         VisualElement recordingPositionIndicator = new();
-        recordingPositionIndicator.style.backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        recordingPositionIndicator.style.backgroundColor = RecordingPositionIndicatorColor;
         recordingPositionIndicator.style.position = new StyleEnum<Position>(Position.Absolute);
-        recordingPositionIndicator.style.width = new StyleLength(new Length(1, LengthUnit.Pixel));
-        recordingPositionIndicator.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
-        recordingPositionIndicator.style.left = new StyleLength(new Length(PitchIndicatorXPercent * 100, LengthUnit.Percent));;
+        recordingPositionIndicator.style.width = new StyleLength(new Length(RecordingPositionIndicatorWidthInPixels, LengthUnit.Pixel));
+        recordingPositionIndicator.style.top = new StyleLength(new Length(RecordingPositionIndicatorTopPercent, LengthUnit.Percent));
+        recordingPositionIndicator.style.height = new StyleLength(new Length(RecordingPositionIndicatorHeightPercent, LengthUnit.Percent));
+        recordingPositionIndicator.style.left = new StyleLength(new Length(PitchIndicatorXPercent * 100, LengthUnit.Percent));
         return recordingPositionIndicator;
     }
 

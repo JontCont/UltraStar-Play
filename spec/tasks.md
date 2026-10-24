@@ -44,6 +44,7 @@
 - 9 項本機工具測試通過，涵蓋字序、BPM 四分音符換算、無重疊、拒絕覆寫、缺音高自由唱、品質不足不發布、明確 review 模式不對低信心音符評分及過半不確定仍拒絕。初稿先通過原 gate 的兩首才發布；第三首因時間定位仍不足而採明確 partial-scoring review 模式，不宣稱原始自動品質檢查全部通過。
 - 暫存 Editor fixture 以遊戲實際 `UltraStarSongParser` 讀取三份最終 TXT：**3 通過、0 失敗、0 略過**。驗證無 parser issues、中文名稱、媒體存在、537／452／296 音符、不同音高、正長度、不重疊與實際時間換算。命令為 `& $Unity -batchmode -projectPath '.\UltraStar Play' -runTests -testPlatform EditMode -testFilter LocalGeneratedChartValidation -testResults "$Evidence\three-chart-parser-results.xml" -logFile "$Evidence\three-chart-parser.log"`；暫存 fixture 驗證後已移至 session，沒有私人檔案路徑測試留在遊戲原始碼。
 - 每首抽取 6 個對齊位置與本機 MV 字幕比較，已核對兩首張遠的段落，以及修正後周杰倫版本的主歌／副歌／重複段／結尾；這是段落抽查，不是逐字或聽歌驗收。原生 UI 自動檢查兩次因無法取得前景視窗而安全中止，未送輸入至其他視窗；測試 player 均已關閉，使用者正在執行的 player 未停止，設定檔 hash 不變。不得把解析測試說成已實際唱完或已看見三張歌曲卡片。
+- 同日依使用者要求修正私人〈晴天〉譜面的大提琴間奏後尾段：先備份原 TXT，補回漏掉的 8 字，修復錯序、重疊及後續歌詞提早；只調整約 246.8–277.0 秒，前段逐位元組相同，原影音 SHA-256、BPM／GAP 與既有音高保持不變，缺句沿用前段副歌。以本機分離人聲及 23 個較可靠的對齊錨點校正原節奏，22 個誤差小於 100 ms，並抽查 6 處 MV 字幕；低信心單字不直接當作精確定位。6 項針對性檢查全部通過（原檔 5 項失敗），暫存 `LocalSunnyChartValidation` 經 Unity 6.6 實際 parser 驗證 1 通過、0 失敗；共 371 音符、尾段 50 音符，沒有時間倒退或重疊。暫存 fixture 移至 session，私人歌詞未加入 repository；未宣稱逐字人工聽歌或實唱驗收。
 
 ### T03S
 
