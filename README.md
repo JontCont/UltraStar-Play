@@ -1,5 +1,7 @@
 # UltraStar Play Development README
 
+**English** | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
+
 [![Build Status](https://github.com/UltraStar-Deluxe/Play/actions/workflows/build-main-game.yml/badge.svg)](https://github.com/UltraStar-Deluxe/Play/actions/workflows/build-main-game.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/7cb9f368e7cb49a580a2ab3ed4345a07)](https://www.codacy.com/gh/UltraStar-Deluxe/Play/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=UltraStar-Deluxe/Play&amp;utm_campaign=Badge_Grade)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/UltraStar-Deluxe/Play/blob/master/LICENSE) 
