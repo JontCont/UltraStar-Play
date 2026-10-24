@@ -7,21 +7,31 @@
 - 查閱時主分支 commit：`a4aaa0b31327062a92d12b5e4cab4d80777f2a3f`，日期 2026-10-21。
 - 最新列出的發布版為 [v1.7.1-beta1](https://github.com/UltraStar-Deluxe/Play/releases/tag/v1.7.1-beta1)，發布於 2026-09-16。
 - 下列原始碼連結固定在研究 commit，避免後續主分支變動混淆研究結果。
-- 使用者已確認並匯入上述 commit。本機已核對來源、Git 歷史及部分建置 metadata；以下行為描述仍以研究為主，不代表已通過 Unity 建置或實機驗證。
+- 使用者已確認並匯入上述 commit。本機後續通過 Unity 6.6 編譯、針對性 EditMode 與 Windows 建置；以下行為描述仍以研究為主，不等於實機演唱已驗證。
 
 ## 本機匯入紀錄
 
 - 匯入日期：2026-10-24，位置為目前 workspace 根目錄。
-- 工作分支：`refactor/desktop-refresh`；`HEAD` 為上述完整 commit。
+- 工作分支：`refactor/desktop-refresh`；匯入起點為上述完整 commit，後續專案提交保留此祖先。
 - 專案 remote：`origin`，URL 為 `https://github.com/JontCont/UltraStar-Play.git`；依使用者要求設定為 fetch／push 目的地，尚未驗證遠端存取權限。
 - 官方來源 remote 保留為 `upstream`，URL 為 `https://github.com/UltraStar-Deluxe/Play.git`。未建立新提交或推送。
 - 保留該 commit 的 2,696 筆祖先提交，不是 shallow clone。使用 `blob:none` 延後下載非當前版本所需的歷史檔案；查閱未快取的舊檔案時仍可能需要連網。
-- 上游帶有 4,904 個追蹤檔案。checkout 後的程式碼與上游相同；唯一刻意修改的上游文件為主遊戲 AI 入口。
+- 上游帶有 4,904 個追蹤檔案。初次 checkout 時程式碼與上游相同；當時唯一刻意修改的上游文件為主遊戲 AI 入口。後續引擎相容性變更另見下節。
 - 原有 8 份規劃與 AI 指引在匯入前後 SHA-256 相同；後續狀態更新另行編輯。
 - 上游主遊戲 AI 指引已改為轉向 `.agents/`，原始內文保留為 [歷史參考](../.agents/references/upstream-main-game-guidelines.md)，不作為第二套生效規範。
-- 目前只驗證 Git 物件連通性及工作樹，未還原依賴，也未驗證 Unity 執行。
+- 匯入時驗證了 Git 物件連通性及工作樹；後續 Nuke 依賴、Unity 匯入／編譯及 Windows 建置已通過，互動演唱仍未驗證。
 
 ## 上游主要邊界
+
+### 已核准的 Companion 遷移
+
+- 2026-10-24：使用者另行確認 Companion 也升級至 Unity `6000.6.7f1`，並由 Built-In 遷移 URP；不是只列入未來計畫。
+- 修改前查證：Companion 沒有 URP 套件、Graphics 預設與六個品質等級均未指定 SRP。主場景使用無 target texture 的 UI Toolkit panel，`CommonSceneObjects` 只有一個正交 camera；沒有發現自有材質、shader 或 C# 渲染 callback。
+- 核准方案：由 Unity API 建立 Companion 自有輕量 forward renderer／URP asset，設定 Graphics 預設並驗證每個品質等級；不直接套用桌機渲染資產、不新增後處理、陰影、depth／opaque texture 成本，保留原色彩空間、UI、FPS、收音與協定。
+- 使用現有 Nuke target 還原缺少的 Companion 依賴；該 target 也會重建主遊戲／共用 NuGet 插件，需關閉兩個 Editor。
+- 已由 Unity API 產生專屬 [pipeline](<../UltraStar Play Companion/Assets/RenderPipeline/CompanionRenderPipeline.asset>)、[renderer](<../UltraStar Play Companion/Assets/RenderPipeline/CompanionRenderer.asset>)、global settings／volume profile，並保存 camera 的 URP data。六個品質等級均繼承此預設 pipeline；desktop 資產未被借用。
+- Editor 匯入／編譯、5 個渲染設定／UXML EditMode、1 個隔離渲染 PlayMode 與 Windows smoke build 通過。隔離測試只掛載真實 camera／panel／UXML，不載入完整主場景控制器、不操作使用者設定或連線。
+- 目前沒有 Android／iOS 建置模組，手機打包、觸控、授權收音、耗電及主遊戲配對不可用 Editor 結果代替。共用 ApplicationUtils 啟動時仍有缺 FFmpeg 副檔名資料檔的既有錯誤，未在渲染遷移中順手修改。
 
 | 元件 | 已觀察到的責任 | 翻新原則 |
 |---|---|---|
@@ -89,13 +99,42 @@
 - AI 製譜與即時演唱評分是不同流程。
 - 2026 年整合使用 UVR、Parakeet、RMVPE 與 NeMo Forced Aligner 等工具。
 - 模型與 FFmpeg 函式庫預設不隨建置下載；UI 翻新不得假定它們存在。
-- 本機 `ProjectVersion.txt` 指定 Unity `6000.5.6f1`；匯入其他 tag 時必須重新核對。
+- 上游匯入時兩專案指定 Unity `6000.5.6f1`；本機主遊戲與 Companion 現均由 Editor 遷移到 `6000.6.7f1`。
 - 本機 Nuke 建置專案目標為 `net8.0`，使用 `Nuke.Common` `9.0.4`。
-- 已從 `NukeBuild/Build.cs` 核對 `RestoreMainGameDependencies`、`BuildMainGameWindows64`、`TestMainGame` target；尚未執行，不能視為成功命令。
-- 上游測試 workflow 仍指定 Unity `6000.1.3f1`，與本機專案版本不一致。此為既有設定，未在匯入時修改；不可因此宣稱目前 CI 已驗證本版本。
+- 已從 `NukeBuild/Build.cs` 核對 `RestoreMainGameDependencies`、`BuildMainGameWindows64`、`TestMainGame` target。
+- 2026-10-24 已執行 `.\build.ps1 RestoreMainGameDependencies`，NuGet 與主遊戲外部插件還原成功；未啟用 AI 模型或額外 FFmpeg 函式庫下載。Unity 測試及 Windows 建置經直接 Editor 命令執行，未呼叫 Nuke 對應 target，詳細命令與結果見 [啟動指引](getting-started.md)。
+- 上游兩專案 workflow 原先指定 `6000.1.3f1`；核准後兩專案的 build/test workflow 均同步到 `6000.6.7f1`。尚未執行遠端 CI，也未驗證手機平台。
 - 根目錄 `build.ps1` 會建置 Nuke 專案，找不到 .NET 時還可能下載 SDK；不能將呼叫腳本的 `--help` 當作沒有副作用的環境探測。
 
 來源：[依賴下載器](https://github.com/UltraStar-Deluxe/Play/blob/a4aaa0b31327062a92d12b5e4cab4d80777f2a3f/NukeBuild/MainGameDependencyDownloader.cs)、[Unity 版本](https://github.com/UltraStar-Deluxe/Play/blob/a4aaa0b31327062a92d12b5e4cab4d80777f2a3f/UltraStar%20Play/ProjectSettings/ProjectVersion.txt)。
+
+## 已核准的 Unity 6.6 遷移
+
+- 2026-10-24 使用者確認直接採用已安裝的 `6000.6.7f1`，不先安裝或執行 6.5。
+- 已核對執行檔 `C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor\Unity.exe` 的 ProductVersion 為 `6000.6.7f1_b22767f04f04`。
+- 遷移前主遊戲仍指定 `6000.5.6f1`，沒有 Library 匯入快取，也沒有執行中的 Unity Editor。
+- 此主遊戲階段只處理必要相容性，不混入 UI 翻新或評分變更；Companion 後續另行核准，證據與責任範圍分列於 Companion 段落。
+- 由 Editor 進行序列化／API 遷移，先確認匯入與編譯，再執行可行的既有測試及 Windows 建置。
+- 由於沒有 6.5 執行基線，任何錯誤都須區分「觀察到」與「證明由升級造成」，不得混為一談。
+- 已通過匯入／編譯、針對性 EditMode 與 Windows 建置，但核心 PlayMode 仍失敗，不能視為完整相容性驗收。程序見 [Unity 升級 skill](../.agents/skills/ultrastar-play-unity-upgrade/SKILL.md)。
+- 首次 6.6 匯入完成套件解析，但編譯被 `com.unity.build-report-inspector` `0.3.0-preview` 的 `BinaryFormatter` 用法阻擋（`UAC0023`）。官方 registry 沒有更新版本，專案 C#／asmdef 沒有引用此工具。
+- 相容性處理：移除這個僅 Editor 使用的預覽版報告檢視工具，不關閉編譯診斷、不修改 PackageCache，也不更動遊戲資料序列化。這會移除工具提供的報告檢視選單；Unity 的 BuildReport API 與建置 log 仍保留。
+- 移除後匯入及編譯成功；現有格式／時間／主題 EditMode 測試為 38 通過、1 個既有 Ignore、0 失敗，Windows64 建置也成功產生 EXE。
+- 核心演唱 PlayMode 測試等待進入 SingScene 逾時；目前尚無證據能將其直接歸因為 6.6。另在匯入 log 觀察到 UXML 浮點屬性使用逗號小數（`0,135`、`0,1`）的解析錯誤，已統一主遊戲與共用版面為 invariant 小數格式後重試。
+- 修正 28 份 UXML 後，最終 EditMode 仍為 38 通過、1 個既有 Ignore，Windows 建置成功且沒有該類 UXML 或 shader error；核心 PlayMode 重試仍停在等待 SingScene，繼續由 T04 追蹤。
+- Unity 產生的字型／URP／sprite atlas 等序列化遷移保留；測試造成的 NetworkManager 日誌層級改動已還原為原值，不混入連線行為修改。
+
+### 渲染管線與 Built-In 淘汰風險
+
+- 使用者要求將 Built-In Render Pipeline 淘汰納入升級考量。官方文件標示從 Unity 6.5 起 deprecated，並承諾支援（含修正與維護）至 **Unity 6.7 LTS 完整生命週期**；不應解讀成在 6.7 發布時立即移除。
+- 已核對主遊戲 [GraphicsSettings](<../UltraStar Play/ProjectSettings/GraphicsSettings.asset>) 的 `m_CustomRenderPipeline` GUID 為 `5b2dd8830449c234ba547ed27b4b214d`，對應 [URP asset metadata](<../UltraStar Play/Assets/RenderPipeline/UniversalRenderPipelineAsset.asset.meta>) 及 [URP asset](<../UltraStar Play/Assets/RenderPipeline/UniversalRenderPipelineAsset.asset>)。
+- 主遊戲 [QualitySettings](<../UltraStar Play/ProjectSettings/QualitySettings.asset>) 各品質等級均未覆寫 render pipeline，因此使用 Graphics 的預設 URP；`fileID: 0` 在此代表沒有品質覆寫，不代表強制選用 Built-In。
+- 遷移前未在主遊戲、共用套件及 Companion 的 C# 發現 runtime pipeline 切換。這次只新增 Editor 設定工具，不新增 runtime 切換；不是對外部 DLL 或所有動態行為的保證。
+- Companion 原先的 [GraphicsSettings](<../UltraStar Play Companion/ProjectSettings/GraphicsSettings.asset>) 與 [QualitySettings](<../UltraStar Play Companion/ProjectSettings/QualitySettings.asset>) 未指定 SRP；後續獨立核准並完成 URP 設定遷移，Editor 也已升為 6.6，見本文件 Companion 遷移段落。
+- 桌機主遊戲不需為淘汰通知重新做一次 Built-In → URP 遷移，但仍須驗證第三方材質、shader、粒子與背景特效在 URP 下的實際顯示，不能以設定正確取代畫面驗證。
+- 不再將 Built-In 視為新開發方向；Companion 遷移後仍需手機端的渲染／效能與配對實測。
+
+來源：[Unity 6.5 Built-In Render Pipeline 文件](https://docs.unity.com/en-us/engine/6000.5/manual/render-pipelines/built-in-render-pipeline)。
 
 ## 授權
 

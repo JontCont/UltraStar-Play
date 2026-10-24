@@ -9,7 +9,11 @@ description: "Use before changing UltraStar Play architecture or application cod
 
 Read the [architecture baseline](../../../spec/architecture.md) and [shared instructions](../../README.md).
 
-The baseline separates public research from source-import checks. The approved source is present at commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f`; Git integrity and selected build metadata are verified locally, but application behavior and runtime architecture have not yet been validated.
+The baseline separates upstream research from local validation. The imported source is based on commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f`; main-game Unity 6.6 compilation, focused EditMode checks, and Windows builds have passed. The core singing PlayMode check remains failing, and interactive behavior is not yet validated.
+
+The user subsequently approved a Windows main-game migration to installed Unity `6000.6.7f1` without first running 6.5. Follow the [Unity upgrade skill](../ultrastar-play-unity-upgrade/SKILL.md); installation and migration approval alone do not prove compatibility.
+
+The user also approved Companion's Unity 6.6 and Built-In to URP migration. Keep its renderer assets project-local and its UI Toolkit, microphone and networking behavior unchanged; validate the effective pipeline for every quality level and isolate settings in runtime checks. Mobile builds and pairing require separate evidence.
 
 ## Procedure before implementation
 

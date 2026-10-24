@@ -1,6 +1,6 @@
 # UltraStar Play 桌機翻新規格
 
-狀態：已匯入原版程式碼，尚未還原依賴或建置。建立日期：2026-10-24。
+狀態：Unity 6.6 匯入、編譯與 Windows 建置通過；核心演唱測試仍待排除逾時。建立日期：2026-10-24。
 
 ## 目標
 
@@ -14,6 +14,7 @@
 - AI 共用規範與 skills 統一放在 `.agents/`，不建立各工具的重複版本。
 - 開發必須先讀架構 skill；涉及架構變動時，先建立或更新對應 skill，再實作並驗證。
 - 已確認以 commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f` 為起點，匯入目前根目錄並保留上游 Git 歷史。
+- 後續已核准主遊戲直接升級至 `6000.6.7f1`，不先執行 6.5；使用者再另行核准 Companion 一併升級並遷移 URP，兩專案目前使用相同 Editor／URP 版本。
 
 ## 本次已交付
 
@@ -21,8 +22,9 @@
 - 有來源與限制說明的上游架構研究基線。
 - 共用 AI 指引、開發 skill、架構 skill。
 - 已核對來源與 Git 完整性的上游原始碼；原有規劃文件均保留。
+- Companion 的獨立 URP 資產／camera 設定、5 個 EditMode 與 1 個隔離渲染 PlayMode 檢查，以及 Windows smoke build；不代表手機打包、收音及配對已驗收。
 
-本機分支為 `refactor/desktop-refresh`，專案 remote `origin` 為 [JontCont/UltraStar-Play](https://github.com/JontCont/UltraStar-Play)，官方來源保留為 `upstream`。尚未建立本專案提交或推送，也未還原依賴、進行 Unity 建置或實機測試。
+本機分支為 `refactor/desktop-refresh`，專案 remote `origin` 為 [JontCont/UltraStar-Play](https://github.com/JontCont/UltraStar-Play)，官方來源保留為 `upstream`。主遊戲依賴、匯入與編譯已通過；38 個針對性 EditMode 測試通過、1 個既有 Ignore，Windows EXE 已產生。核心演唱 PlayMode 測試仍失敗，不能宣稱整體唱歌流程驗收完成。開啟方式與證據見 [開發版啟動指引](getting-started.md)。
 
 ## 翻新範圍
 
@@ -62,6 +64,7 @@
 
 ## 文件索引
 
+- [開發版啟動指引](getting-started.md)
 - [開發計畫](plan.md)
 - [任務清單](tasks.md)
 - [架構研究基線](architecture.md)

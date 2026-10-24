@@ -53,7 +53,7 @@
                                 <MaterialIcon tabindex="-1" name="lrcImportIcon" icon="cloud_download" picking-mode="Ignore" style="font-size: 14px; position: absolute;"/>
                             </ToggleButton>
                         </ui:VisualElement>
-                        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="scrollView" class="fullMinHeightUnityContentContainer" style="width: 100%; height: auto; flex-grow: 1;">
+                        <ui:ScrollView scroll-deceleration-rate="0.135" elasticity="0.1" name="scrollView" class="fullMinHeightUnityContentContainer" style="width: 100%; height: auto; flex-grow: 1;">
                             <ui:TextField multiline="true" name="lyricsAreaTextField" value="Lorem ipsum dolor sit " class="smallFont multiline" style="flex-shrink: 1; flex-grow: 1; white-space: normal;"/>
                         </ui:ScrollView>
                     </ui:VisualElement>

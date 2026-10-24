@@ -26,7 +26,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="row" style="flex-grow: 1;">
-            <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="optionsSceneScrollView" vertical-scroller-visibility="AlwaysVisible" class="mr-3" style="min-width: 25%;">
+            <ui:ScrollView scroll-deceleration-rate="0.135" elasticity="0.1" name="optionsSceneScrollView" vertical-scroller-visibility="AlwaysVisible" class="mr-3" style="min-width: 25%;">
                 <ToggleButton name="gameOptionsButton" class="optionsOverviewButton toggleButton">
                     <MaterialIcon icon="sports_esports" name="image" />
                     <ui:Label text="$options_game_button" name="label" />

@@ -4,7 +4,7 @@
         <ui:VisualElement name="row" style="flex-grow: 1; justify-content: center;">
             <ui:Label tabindex="-1" text="Members of &quot;Player01&apos;s Game&quot;" parse-escape-sequences="true" display-tooltip-when-elided="true" name="connectedClientsListTitle" class="borderBottom" />
         </ui:VisualElement>
-        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="connectedClientsListScrollView" class="flexWrapScrollView">
+        <ui:ScrollView scroll-deceleration-rate="0.135" elasticity="0.1" name="connectedClientsListScrollView" class="flexWrapScrollView">
             <ui:Instance template="PlayerProfileListEntryUi" name="PlayerProfileListEntryUi" />
             <ui:Instance template="PlayerProfileListEntryUi" name="PlayerProfileListEntryUi" />
             <ui:Instance template="PlayerProfileListEntryUi" name="PlayerProfileListEntryUi" />

@@ -15,7 +15,7 @@
                 <ui:VisualElement name="secondPlaceTrophyImage" style="height: 120%; width: 64px; background-image: url(&apos;project://database/Assets/Common/Graphics/TrophyAndMedals/bronze-medal.png?fileID=2800000&amp;guid=a92c7bfe3e6017f4382b6ac0816c6298&amp;type=3#bronze-medal&apos;); -unity-background-scale-mode: scale-to-fit; flex-shrink: 0;" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="otherTeamsScrollView" class="mt-4" style="margin-right: 60px; margin-bottom: 10px; flex-grow: 1;">
+        <ui:ScrollView scroll-deceleration-rate="0.135" elasticity="0.1" name="otherTeamsScrollView" class="mt-4" style="margin-right: 60px; margin-bottom: 10px; flex-grow: 1;">
             <ui:Instance template="TeamResultsTeamUi" name="TeamResultTeamUi" />
             <ui:Instance template="TeamResultsTeamUi" name="TeamResultTeamUi" />
         </ui:ScrollView>

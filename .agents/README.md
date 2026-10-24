@@ -8,12 +8,14 @@ This directory is the single source of truth for project-specific AI guidance. D
 - Keep music, charts, settings, and results local. A website, NAS deployment, and a new backend are not required.
 - Preserve the existing singing engine and intended behavior. UI refresh does not authorize scoring, chart-format, audio, or protocol changes.
 - Upstream source is imported at commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f` in the workspace root on branch `refactor/desktop-refresh`. Git remote `origin` points to `https://github.com/JontCont/UltraStar-Play.git`; `upstream` retains the official source repository. Do not push without user authorization.
-- Source integrity has been checked, but dependencies have not been restored and Unity builds or runtime tests have not been run. Do not equate imported source with a runnable game.
+- The main game now uses Unity `6000.6.7f1` and URP `17.6.0`. Import, compilation, 38 focused EditMode tests, and Windows64 builds passed; one existing test is ignored. The core-game-loop PlayMode test still times out entering SingScene, so runtime singing is not verified. Follow the [opening guide](../spec/getting-started.md) and do not claim the upgrade is fully validated.
+- The user subsequently approved Companion's Unity 6.6 and Built-In to URP migration. Its project-local pipeline/camera, five EditMode checks, isolated rendering PlayMode check and Windows smoke build passed. Android/iOS packaging, touch, microphone permissions and main-game pairing remain unverified; do not conflate the rendering check with a connected app test.
 
 ## Required workflow
 
 1. Read the [scope](../spec/README.md), [plan](../spec/plan.md), and relevant entries in the [task list](../spec/tasks.md).
 2. For development, load [ultrastar-play-development](skills/ultrastar-play-development/SKILL.md) and [ultrastar-play-architecture](skills/ultrastar-play-architecture/SKILL.md) before editing application code.
+   For Editor or package migration, also load [ultrastar-play-unity-upgrade](skills/ultrastar-play-unity-upgrade/SKILL.md).
 3. Inspect the actual checkout and identify affected components, callers, shared UI, and tests. Treat the [architecture baseline](../spec/architecture.md) as research evidence, not proof about unimported code.
 4. Before implementing an architectural change, create or update the relevant architecture skill and baseline with verified facts, boundaries, and validation steps. Mark proposals as proposed until implemented and verified.
 5. Reuse an existing skill when it covers the work. Create a focused skill only for a new architectural responsibility or repeatable workflow that is not covered. Do not create one skill per ticket.

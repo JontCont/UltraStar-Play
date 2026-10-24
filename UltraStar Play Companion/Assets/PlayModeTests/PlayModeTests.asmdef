@@ -5,6 +5,8 @@
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
     "Unity.InputSystem",
+    "Unity.RenderPipelines.Core.Runtime",
+    "Unity.RenderPipelines.Universal.Runtime",
     "Unity.InputSystem.TestFramework",
     "Unity.InputSystem.IntegrationTests",
     "Serilog",

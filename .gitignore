@@ -32,6 +32,10 @@ pretrained_models/
 
 # Visual Studio Code config
 .vscode/
+!/.vscode/
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/extensions.json
 
 # Nuke build tool
 .nuke/
@@ -45,6 +49,7 @@ ExportedObj/
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user

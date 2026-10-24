@@ -15,9 +15,11 @@ Load the [architecture skill](../ultrastar-play-architecture/SKILL.md) before ap
 
 Source is present at the workspace root on branch `refactor/desktop-refresh`, based on commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f`. The main Unity project is `UltraStar Play`; Companion is `UltraStar Play Companion`.
 
-The checked-in editor version is `6000.5.6f1`, and `NukeBuild/NukeBuild.csproj` targets `net8.0`. These are source-verified requirements, not proof that matching tools are installed.
+The original upstream editor version was `6000.5.6f1`; both the main game and Companion have been migrated to installed Editor `6000.6.7f1` and URP `17.6.0`. Each project owns separate rendering assets. `NukeBuild/NukeBuild.csproj` targets `net8.0`.
 
 The root `build.ps1` can bootstrap .NET and restore packages. Do not run even its help path as a supposedly read-only check. Review its effects and the selected restore target before executing it.
+
+The main-game Nuke restore, Unity import/compilation, focused EditMode tests, and Windows builds have succeeded. The core-game-loop PlayMode test still times out before SingScene; do not treat a produced EXE as a verified singing session. Use the [upgrade skill](../ultrastar-play-unity-upgrade/SKILL.md) and [opening guide](../../../spec/getting-started.md) for exact evidence. Do not repeat dependency restoration unless required.
 
 ## Procedure
 
@@ -37,6 +39,7 @@ The root `build.ps1` can bootstrap .NET and restore packages. Do not run even it
 - Use temporary local profiles or copies of user data for testing. Do not overwrite an existing song library.
 - Do not add a website or backend for local-only features.
 - Treat Companion functionality as a separate integration boundary, not a prerequisite for single-player desktop singing.
+- Companion's isolated rendering test intentionally loads only camera/panel/UXML assets, not application controllers, settings or networking. Its passing result is not evidence of mobile permissions, pairing, or end-to-end microphone transport.
 
 ## Completion
 

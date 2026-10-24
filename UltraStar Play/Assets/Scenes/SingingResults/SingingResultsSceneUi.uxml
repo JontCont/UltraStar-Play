@@ -57,7 +57,7 @@
                             <MaterialIcon tabindex="-1" name="nextItemIcon" icon="chevron_right" />
                         </ui:Button>
                     </ui:VisualElement>
-                    <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="highscoreEntryList" style="width: 100%; flex-grow: 1;" />
+                    <ui:ScrollView scroll-deceleration-rate="0.135" elasticity="0.1" name="highscoreEntryList" style="width: 100%; flex-grow: 1;" />
                 </ui:VisualElement>
                 <ui:Instance template="TeamResultsUi" name="teamResultsUi" class="overlay" style="align-self: flex-end; width: 90%; display: none;" />
             </ui:VisualElement>

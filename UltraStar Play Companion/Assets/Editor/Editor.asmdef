@@ -6,6 +6,8 @@
       "com.achimmihca.protrans",
       "com.achimmihca.primeinputactions",
       "Unity.InputSystem",
+      "Unity.RenderPipelines.Core.Runtime",
+      "Unity.RenderPipelines.Universal.Runtime",
       "playshared",
       "playshared.Editor",
       "playsharedui",
