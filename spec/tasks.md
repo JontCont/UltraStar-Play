@@ -42,6 +42,7 @@
 ### T02
 
 - 2026-10-24：建立 `desktop-refresh` 分支，以 `upstream` remote 取得上游完整祖先歷史，checkout 使用者確認的 commit。
+- 同日依使用者要求將分支更名為 `refactor/desktop-refresh`，並核對目前分支名稱；未建立提交或推送。
 - 來源為 `https://github.com/UltraStar-Deluxe/Play.git`。無 `--depth` 截斷；使用 `blob:none` 部分複製，舊版檔案內容按需下載。
 - 匯入 4,904 個上游追蹤檔案；`HEAD` 符合指定 commit、祖先提交數 2,696、`--is-shallow-repository` 為 `false`。
 - checkout 前後比較原有 8 份文件的 SHA-256，確認匯入未覆寫任何一份；保留上游授權及程式碼。

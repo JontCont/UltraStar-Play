@@ -13,7 +13,7 @@ Load the [architecture skill](../ultrastar-play-architecture/SKILL.md) before ap
 
 ## Imported baseline
 
-Source is present at the workspace root on branch `desktop-refresh`, based on commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f`. The main Unity project is `UltraStar Play`; Companion is `UltraStar Play Companion`.
+Source is present at the workspace root on branch `refactor/desktop-refresh`, based on commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f`. The main Unity project is `UltraStar Play`; Companion is `UltraStar Play Companion`.
 
 The checked-in editor version is `6000.5.6f1`, and `NukeBuild/NukeBuild.csproj` targets `net8.0`. These are source-verified requirements, not proof that matching tools are installed.
 

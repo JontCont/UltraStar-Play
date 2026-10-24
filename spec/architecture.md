@@ -12,7 +12,7 @@
 ## 本機匯入紀錄
 
 - 匯入日期：2026-10-24，位置為目前 workspace 根目錄。
-- 工作分支：`desktop-refresh`；`HEAD` 為上述完整 commit。
+- 工作分支：`refactor/desktop-refresh`；`HEAD` 為上述完整 commit。
 - 來源 remote：`upstream`，URL 為 `https://github.com/UltraStar-Deluxe/Play.git`。未設定發布 remote、未建立新提交或推送。
 - 保留該 commit 的 2,696 筆祖先提交，不是 shallow clone。使用 `blob:none` 延後下載非當前版本所需的歷史檔案；查閱未快取的舊檔案時仍可能需要連網。
 - 上游帶有 4,904 個追蹤檔案。checkout 後的程式碼與上游相同；唯一刻意修改的上游文件為主遊戲 AI 入口。

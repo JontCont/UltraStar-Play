@@ -22,7 +22,7 @@
 - 共用 AI 指引、開發 skill、架構 skill。
 - 已核對來源與 Git 完整性的上游原始碼；原有規劃文件均保留。
 
-本機分支為 `desktop-refresh`，來源 remote 為 `upstream`。尚未建立本專案提交或推送，也未還原依賴、進行 Unity 建置或實機測試。
+本機分支為 `refactor/desktop-refresh`，來源 remote 為 `upstream`。尚未建立本專案提交或推送，也未還原依賴、進行 Unity 建置或實機測試。
 
 ## 翻新範圍
 
