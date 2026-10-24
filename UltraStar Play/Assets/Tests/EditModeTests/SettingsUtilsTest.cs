@@ -2,6 +2,19 @@
 
 public class SettingsUtilsTest
 {
+    [TestCase("en")]
+    [TestCase("ja")]
+    [TestCase("zh")]
+    [TestCase("zh-TW")]
+    public void ShouldPreserveLanguageAfterSettingsSerialization(string cultureName)
+    {
+        // The default party playlist queries the running song library, outside this language test.
+        Settings settings = new Settings { CultureInfoName = cultureName, PartyModeSettings = null };
+        Settings restoredSettings = JsonConverter.FromJson<Settings>(JsonConverter.ToJson(settings));
+        Assert.AreEqual(cultureName, restoredSettings.CultureInfoName);
+        Assert.AreEqual(cultureName, SettingsUtils.GetCultureInfo(restoredSettings).Name);
+    }
+
     [Test]
     // Should return default if unknown
     [TestCase(EKnownUltraStarSongFormatVersion.V110, EUpgradeUltraStarSongFormatVersion.V120, "WeirdVersion", "1.1.0")]

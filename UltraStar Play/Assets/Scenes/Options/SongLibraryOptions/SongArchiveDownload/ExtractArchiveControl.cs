@@ -1,10 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
-using System.Text;
-using System.Threading;
-using ICSharpCode.SharpZipLib.Core;
+using System.IO.Compression;
 using ICSharpCode.SharpZipLib.Tar;
-using ICSharpCode.SharpZipLib.Zip;
 using UnityEngine;
 
 public class ExtractArchiveControl
@@ -47,69 +44,86 @@ public class ExtractArchiveControl
             throw new FileNotFoundException(archivePath);
         }
 
-        if (!FileUtils.Exists(archivePath))
-        {
-            throw new FileNotFoundException(archivePath);
-        }
-
         // Extract archive on background thread
         await Awaitable.BackgroundThreadAsync();
 
-        if (archivePath.ToLowerInvariant().EndsWith("tar"))
+        try
         {
-            await ExtractTarArchiveAsync();
+            if (archivePath.EndsWith(".tar", StringComparison.OrdinalIgnoreCase))
+            {
+                await ExtractTarArchiveAsync();
+            }
+            else if (archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                ExtractZipArchive();
+            }
+            else
+            {
+                throw new NotSupportedException($"Unsupported archive format: {Path.GetExtension(archivePath)}");
+            }
         }
-        else if (archivePath.ToLowerInvariant().EndsWith("zip"))
+        finally
         {
-            await ExtractZipArchiveAsync();
+            await Awaitable.MainThreadAsync();
         }
-
-        await Awaitable.MainThreadAsync();
     }
 
-    private async Awaitable ExtractZipArchiveAsync()
+    private void ExtractZipArchive()
     {
         using Stream archiveStream = File.OpenRead(archivePath);
-        using ZipFile zipFile = new(archiveStream);
+        using ZipArchive archive = new(archiveStream, ZipArchiveMode.Read);
         extractedZipEntryCount = 0;
-        totalZipEntryCount = zipFile.Count;
+        totalZipEntryCount = archive.Entries.Count;
 
         // Workaround for Windows path length limit: Extract to temporary folder with shorter path. 
         // Use Path.GetTempPath because Unity's Application.persistentDataPath can only be called on the main thread.
         string extractFolder = PlatformUtils.IsWindows ? $"{Path.GetTempPath()}/extract-{Guid.NewGuid()}" : targetFolder;
 
-        foreach (ZipEntry entry in zipFile)
+        try
         {
-            ExtractZipEntry(zipFile, entry, extractFolder);
+            Directory.CreateDirectory(extractFolder);
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                ExtractZipEntry(entry, extractFolder);
+                extractedZipEntryCount++;
+            }
+
+            if (PlatformUtils.IsWindows)
+            {
+                DirectoryUtils.CopyAll(extractFolder, targetFolder);
+            }
         }
-        
-        // Move to target folder
-        if (PlatformUtils.IsWindows)
+        finally
         {
-            DirectoryUtils.CopyAll(extractFolder, targetFolder);
-            DirectoryUtils.Delete(extractFolder, true);
+            if (PlatformUtils.IsWindows && Directory.Exists(extractFolder))
+            {
+                Directory.Delete(extractFolder, true);
+            }
         }
     }
 
-    private void ExtractZipEntry(ZipFile zipFile, ZipEntry zipEntry, string targetFolder)
+    private void ExtractZipEntry(ZipArchiveEntry entry, string targetFolder)
     {
-        string entryPath = zipEntry.Name;
-        if (!zipEntry.IsFile)
+        string rootPath = Path.GetFullPath(targetFolder)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        string entryPath = entry.FullName.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+        string targetPath = Path.GetFullPath(Path.Combine(rootPath, entryPath));
+        StringComparison comparison = PlatformUtils.IsWindows ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        if (Path.IsPathRooted(entryPath) || !targetPath.StartsWith(rootPath, comparison))
         {
-            string targetSubFolder = targetFolder + "/" + zipEntry.Name;
-            Directory.CreateDirectory(targetSubFolder);
+            throw new InvalidDataException($"Archive entry is outside the extraction folder: {entry.FullName}");
+        }
+        if (entryPath.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
+        {
+            Directory.CreateDirectory(targetPath);
             return;
         }
 
-        Debug.Log($"Extracting ZIP entry {entryPath}");
-        string targetFilePath = targetFolder + "/" + entryPath;
-
-        byte[] buffer = new byte[4096];
-        using Stream zipEntryStream = zipFile.GetInputStream(zipEntry);
-        using FileStream targetFileStream = File.Create(targetFilePath);
-        StreamUtils.Copy(zipEntryStream, targetFileStream, buffer);
-
-        extractedZipEntryCount++;
+        Debug.Log($"Extracting ZIP entry {entry.FullName}");
+        Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+        using Stream entryStream = entry.Open();
+        using FileStream targetStream = File.Create(targetPath);
+        entryStream.CopyTo(targetStream);
     }
 
     private async Awaitable ExtractTarArchiveAsync()

@@ -1,0 +1,15 @@
+{
+    "name": "playsharedui.Translations.Editor.Tests",
+    "references": [
+        "playshared",
+        "playsharedui",
+        "com.achimmihca.protrans"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "autoReferenced": false
+}

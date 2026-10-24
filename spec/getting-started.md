@@ -32,6 +32,57 @@
 
 同一專案不要同時開啟互動 Editor 與 batch-mode 測試／建置。
 
+### 切換繁體中文
+
+主遊戲先進入 **Options → Game → Language**，選擇 **Chinese (Traditional) - 繁體中文**。套用後介面切換為繁體，並沿用既有設定保存機制；簡體中文 **Chinese (Simplified)** 仍可選，不會強制改動原本的語言設定。
+
+繁體翻譯資源與字型由主遊戲、Companion 共用，Companion 的語言選單也會列出繁體。現有 Companion 不會在啟動時套用保存的語言設定，重新啟動後需在選單重選；此既有行為不是本次新增翻譯所修改的範圍。
+
+在 Unity Editor 載入更新的資源即可看到新選項；舊 EXE 不會因原始碼更新而改變，必須重新建置 Windows 成品。字型沿用既有 Noto Sans TC fallback，不需另裝系統字型。
+
+2026-10-24 已重建本機 Windows 成品並以隔離設定啟動，主畫面繁體字形可見；不是只新增 README 或只驗證原始碼。主遊戲 20 項與 Companion 14 項 EditMode 通過，涵蓋 783 項 key／格式一致、兩種中文選項、四語設定序列化及現有字型的漢字覆蓋。尚未逐頁人工檢查所有長文字排版，也未因此重新驗證完整演唱。
+
+同日後續已修正設定頁缺字：原有 CJK 字型限制為單張動態 atlas，顯示更多文字後容量不足；現在可自動增加 atlas 頁，不需變更字型或縮小文字。已再重建 Windows，實際檢查遊戲設定、錄音／全域設定，以及連續切換其他設定頁後回訪；側欄與錄音欄位中文字完整顯示。請結束舊版 EXE 後重新開啟同一路徑的新成品；正在執行的程序不會自動換用新字型資源。
+
+缺字回歸命令均通過，另有 10 個字型容量案例證明修正前失敗、修正後實際跨多張 atlas 成功：
+
+```powershell
+# 30 passed，0 failed
+& $Unity -batchmode -projectPath '.\UltraStar Play' -runTests -testPlatform EditMode -testFilter 'CjkFontAtlasTest;TraditionalChineseTranslationTest;SettingsUtilsTest' -testResults "$Evidence\cjk-atlas-main-results.xml" -logFile "$Evidence\cjk-atlas-main.log"
+# 24 passed，0 failed
+& $Unity -batchmode -projectPath '.\UltraStar Play Companion' -runTests -testPlatform EditMode -testFilter 'CjkFontAtlasTest;TraditionalChineseTranslationTest;CompanionLanguageSettingsTest' -testResults "$Evidence\cjk-atlas-companion-results.xml" -logFile "$Evidence\cjk-atlas-companion.log"
+# Build Finished, Result: Success.
+& $Unity -batchmode -quit -projectPath '.\UltraStar Play' -buildTarget Win64 -executeMethod MainGameBuildTools.BuildWindows64 -logFile "$Evidence\cjk-atlas-windows-build.log"
+```
+
+下列針對性命令均已通過（同一專案先關閉其他 Editor，`$Unity` 與 `$Evidence` 使用下方驗證區段定義）：
+
+```powershell
+# 20 passed，0 failed
+& $Unity -batchmode -projectPath '.\UltraStar Play' -runTests -testPlatform EditMode -testFilter 'TraditionalChineseTranslationTest;SettingsUtilsTest' -testResults "$Evidence\zh-tw-main-final-editmode-results.xml" -logFile "$Evidence\zh-tw-main-final-editmode.log"
+# 14 passed，0 failed
+& $Unity -batchmode -projectPath '.\UltraStar Play Companion' -runTests -testPlatform EditMode -testFilter 'TraditionalChineseTranslationTest;CompanionLanguageSettingsTest' -testResults "$Evidence\zh-tw-companion-retry-editmode-results.xml" -logFile "$Evidence\zh-tw-companion-retry-editmode.log"
+# Build Finished, Result: Success.
+& $Unity -batchmode -quit -projectPath '.\UltraStar Play' -buildTarget Win64 -executeMethod MainGameBuildTools.BuildWindows64 -logFile "$Evidence\zh-tw-main-windows-build.log"
+```
+
+### 歌曲 ZIP 下載後無法匯入
+
+若舊版下載官方歌曲包後出現 `Method not found: long ICSharpCode.SharpZipLib.Zip.ZipFile.get_Count()`，原因是 Windows 成品載入的 SharpZipLib 與編譯版本 API 不同，不是下載權限。歌曲 ZIP 匯入已改用 .NET 內建 `ZipArchive`，不需重裝 Unity 或另外安裝 ZIP 工具。
+
+請關閉舊遊戲並重新開啟上方同一路徑的 Windows 成品，在 **設定 → 歌曲** 重新啟動歌曲包下載／匯入。程式沒有新增「匯入既有 ZIP」按鈕，從既有下載介面重試仍可能再次下載；原先下載失敗留下的 ZIP 沒有被本次修復刪除。
+
+已在正常 Windows 成品的原下載 UI 匯入本機快取的官方 301 MB 包（測試透過 loopback，無須重新連外下載），217 個解壓檔案逐一比對長度與 SHA-256 全部正確，並確認成功後保存新增歌庫路徑；包含 85 個 `.txt` 與 50 個音訊檔。使用者設定未覆寫，測試副本已清理。這只驗證下載／解壓／登記歌庫，不代表完整演唱已通過。
+
+```powershell
+# 10 passed，0 failed，0 skipped
+& $Unity -batchmode -projectPath '.\UltraStar Play' -runTests -testPlatform PlayMode -testFilter ArchiveExtractionTest -testResults "$Evidence\zip-import-playmode-results.xml" -logFile "$Evidence\zip-import-playmode.log"
+# Build Finished, Result: Success.
+& $Unity -batchmode -quit -projectPath '.\UltraStar Play' -buildTarget Win64 -executeMethod MainGameBuildTools.BuildWindows64 -logFile "$Evidence\zip-import-windows-build.log"
+# 未通過：既有其他 PlayMode 測試的 VisualElementTestUtils 無法在此 target 編譯。
+& $Unity -batchmode -projectPath '.\UltraStar Play' -runTests -testPlatform StandaloneWindows64 -buildTarget Win64 -testFilter ArchiveExtractionTest -testResults "$Evidence\zip-import-standalone-results.xml" -logFile "$Evidence\zip-import-standalone.log"
+```
+
 ### VS Code 的 Unity.Sdk／NU1503 訊息
 
 建議使用獨立的 **Unity** profile。2026-10-24 已在 VS Code Insiders 的此 profile 安裝 Microsoft 官方 Unity extension，並自動加入 C# Dev Kit、C#、.NET Install Tool 三個依賴；沒有搬入其他 profile 的全端開發套件。[擴充套件建議](../.vscode/extensions.json) 只列官方 Unity extension，其依賴由 VS Code 處理。這與 Unity Package Manager 中的 `Visual Studio Editor` 套件不同，兩者都需要；本專案已使用相容版本，不要另裝舊的 `Visual Studio Code Editor` Unity 套件。

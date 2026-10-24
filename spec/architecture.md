@@ -55,6 +55,27 @@
 
 ## 演唱與評分
 
+### 歌曲 ZIP 匯入
+
+- 2026-10-24：使用者回報下載官方 CC 歌曲包後出現 `Method not found: long ICSharpCode.SharpZipLib.Zip.ZipFile.get_Count()`。約 301 MB 的 ZIP 已存在本機，問題在解壓而非歌曲 URL 或下載權限。
+- 查證主遊戲編譯引用 SharpZipLib 0.85／Sherpa 1.4，而 Windows 成品實際包含 Unity Mono 的 4.84；相同 assembly 名稱造成 API 不相容。修復只讓 ZIP 匯入改用既有 `System.IO.Compression.ZipArchive`，不新增依賴、不改 Unity 安裝或 PackageCache。
+- 保留 `DownloadSongArchiveUiControl` 的錯誤顯示與成功後新增歌庫路徑、背景解壓和 Windows 短路徑 staging；補齊缺省父資料夾、完整進度與失敗清理，禁止 ZIP entry 寫出目的地。
+- TAR、Android StreamingAssets 和建置壓縮仍維持現有程式，不因 ZIP 修復而宣稱已驗證；驗收包含合成案例、實際下載包與 Windows 成品，不只 Editor。
+- 驗證已完成：10 個隔離 PlayMode 案例通過，正常 Windows 建置成功。以隔離設定及僅限 loopback 的暫存 HTTP helper，讓成品從原下載 UI 匯入既有官方 ZIP（301,329,787 bytes／258 entries）；217 個解壓檔案的長度及 SHA-256 全部符合原 ZIP，包含 85 個 `.txt`、50 個音訊檔案，成功回報後登記歌庫路徑。未覆寫使用者設定；測試副本與 helper 已清理，原 ZIP 保留。
+- `StandaloneWindows64` 測試 runner 被既有 PlayMode 測試的 `VisualElementTestUtils` 編譯錯誤阻擋，未宣稱該 runner 通過；上述成品證據來自正常建置的原生遊戲，不是以 Editor 結果推論。完整演唱仍由 T04 追蹤。
+
+### 繁體中文在地化
+
+- 2026-10-24 使用者核准新增遊戲繁體中文，與先前 README 翻譯不同；保留英文、簡體中文、日文與其他語言，不改預設語言。
+- 主遊戲與 Companion 共用 `playshared/Runtime/Resources/Translations`，ProTrans 以 `messages_zh_TW.properties` 對應 `zh-TW`。`LanguageChooserControl` 自動探索資源，語言名稱由英文預設檔的 `language_zh_tw` 提供。
+- 沿用既有 `CultureInfoName` 設定與切換流程，不改評分、歌曲語言或 Companion 通訊。
+- 現有 `UltraStarPlayTextSettings` 已包含 Noto Sans TC 動態字型 fallback；先驗證繁體字形覆蓋，不新增字型依賴或改全域字型順序。
+- 新增整份繁體翻譯並檢查 key、placeholder、換行、rich text 與 URL 一致；以共用測試涵蓋兩個 Unity 專案，另外驗證設定序列化與 Windows 建置。現有手動 TranslationTest 不解除 Ignore。
+- 已實作 783 個繁體項目與獨立共用測試 assembly，兩個 manifest 的 `testables` 明確啟用 `playsharedui` 測試。主遊戲 20 項與 Companion 14 項 EditMode 通過，包含選單、格式、字型與設定序列化；Windows 成品已打包繁體資源，隔離設定啟動的主畫面已實際顯示繁體。
+- 後續使用者截圖發現設定頁缺字；來源字型覆蓋測試不等於 atlas 容量測試。JP、KR、SC、TC fallback 及其粗體原本限制為單張 1024x1024 動態 atlas；10 個暫存 FontAsset 容量案例重現失敗後，已啟用多張 atlas 與建置時清除動態快取，未更改字型順序或靠縮字隱藏。
+- 缺字修復後主遊戲 30 項／Companion 24 項 EditMode 通過，Windows 重建成功；實際成品的設定與錄音頁中文字完整，多次切換其他設定頁再回訪也正常。這取代先前僅主畫面可見的有限視覺證據，不代表演唱或手機已驗證。
+- Companion 原有啟動流程沒有套用已保存的 `CultureInfoName`，本次不順便修改其生命週期；重新啟動需重選語言。未宣稱手機打包、配對或演唱流程已驗證。
+
 概念流程：
 
 ```text

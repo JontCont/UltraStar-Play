@@ -11,6 +11,9 @@
 | T02 | 匯入上游原始碼 | done | T01 | 保留現有文件及上游授權；記錄來源、版本和匯入方式 |
 | T03 | 準備可重現建置環境 | done | T02 | Unity 6.6 匯入、編譯、針對性 EditMode 與 Windows 建置已完成，命令及結果已記錄 |
 | T03C | 升級 Companion 至 Unity 6.6／URP | done | T02 | 獨立 URP 資產與六個品質設定通過檢查；Editor 編譯、5 個 EditMode、1 個隔離渲染 PlayMode 與 Windows smoke build 通過；手機限制另列 |
+| T03L | 新增共用繁體中文 | done | T03, T03C | 783 項完整翻譯；兩端選單、格式／字形與設定序列化測試通過，Windows 已建置並實際顯示繁體主畫面；Companion 重啟限制另列 |
+| T03F | 修正中文設定頁缺字 | done | T03L | 10 個字型容量測試修前失敗、修後通過；主遊戲 30／Companion 24 項通過，Windows 設定與錄音頁及多次切換截圖驗證 |
+| T03Z | 修正下載歌曲 ZIP 匯入 | done | T03 | 10 個 PlayMode 案例通過、Windows 重建成功；原生 UI 匯入官方 301 MB 包，217 個檔案逐一 SHA-256 相符並登記歌庫路徑；獨立 test runner 限制另列 |
 | T04 | 驗證未翻新遊戲流程 | blocked | T03 | 核心 PlayMode 測試等待 SingScene 逾時；需排除並在 player 完成選歌、收音、演唱、結算 |
 | T05 | 核對實際架構並更新 skills | pending | T04 | 確認 UI、音訊、評分、資料與連線邊界；研究假設與本機事實分開記錄 |
 | T06 | 盤點畫面與相容需求 | pending | T04 | 列出頁面、既有操作、輸入裝置、資料、在地化與失敗情境 |
@@ -26,6 +29,30 @@
 | T16 | 封裝 Windows 成品與交付文件 | pending | T15 | 成品在確認環境通過驗收；授權、啟動方法、限制及 skills 與交付一致 |
 
 ## 執行紀錄
+
+### T03F
+
+- 2026-10-24：使用者回報設定與錄音頁部分中文字消失、看似排版跑掉。確認譯文仍完整，問題是共用 CJK fallback 的單張 1024x1024 動態 atlas 裝滿，而非版面寬度不足。
+- 新增 `CjkFontAtlasTest`，以實際來源字型、取樣大小、padding、render mode、atlas 大小與 multi-atlas 設定建立暫存字型，載入繁體／簡體／日文所需且來源支援的字形。修正前 JP／KR／SC／TC 一般與粗體共 10 案全部失敗，每案有 745–964 個來源支援字形無法裝入。
+- 對上述 10 個資產啟用多張 atlas 與建置時清除動態快取，未改 fallback 順序、字型尺寸、字型來源、UI 控制項寬度或音訊／評分邏輯；沒有用換字或縮字規避缺字。
+- 修正後主遊戲 `CjkFontAtlasTest;TraditionalChineseTranslationTest;SettingsUtilsTest`：30 通過、0 失敗；Companion `CjkFontAtlasTest;TraditionalChineseTranslationTest;CompanionLanguageSettingsTest`：24 通過、0 失敗。每個容量案例確認全數字形裝入且真的使用超過一張 atlas；測試只修改暫存字型並釋放其材質／貼圖。
+- Unity 建置清除動態資料時另外改寫了六個原先乾淨資產的既有 glyph／texture cache 與序列化欄位順序；已保留其原始資料，只留下每檔兩個設定值差異，避免夾帶大量無關的快取變更。成品仍為已驗證的清除快取後版本。
+- 使用者同意正常關閉遊戲，另明確核准停止無視窗的 Unity 建置 PID 7652 及工作程序，才釋放主專案執行驗證。
+- Windows 重建 `Build Finished, Result: Success.`。隔離設定啟動真正成品，進入遊戲設定、錄音設定與全域設定，並連續切換外觀／畫面／音效／網路攝影機／手機／模組頁後回到遊戲設定。
+- 實際視窗截圖確認側欄「網路攝影機／手機應用程式／模組」與錄音頁「全域設定／音符／顏色／延遲／校正／音量門檻／取樣率／自動」完整可見；回訪頁面後仍正常。測試程序已關閉，沒有覆寫使用者設定。
+- 原有部分 UI 硬編碼英文（如 Language／System Audio Backend Delay）未順手擴張修改；完整演唱與手機實機仍未驗證。專用 XML、log、視窗截圖保留於 session，不提交。
+
+### T03L
+
+- 2026-10-24：使用者核准新增遊戲繁體中文；先補架構 skill 與在地化責任邊界，再新增共享 `messages_zh_TW.properties` 與 Unity importer metadata，不覆寫簡體、不改預設語言。
+- 英文預設目錄新增 `Chinese (Traditional) - 繁體中文` 選項；沿用既有 ProTrans 地區代碼探索、語言選單及 `CultureInfoName`。繁體 783 項與英文 key 完全一致、非空且無重複，placeholder、rich text、換行與 URL 均一致。
+- 沿用既有 Noto Sans TC 動態 fallback，逐一驗證翻譯中使用的漢字在來源字型有字形；未下載新字型、修改 fallback 順序或寫入動態 atlas cache。
+- 主遊戲 EditMode：20 通過、0 失敗（共用繁體測試 10、四語設定序列化 4、既有設定測試 6）。Companion EditMode：14 通過、0 失敗（同一共用測試 10、四語設定序列化 4）。原手動 TranslationTest 維持 Ignore。
+- 初次 Companion 只發現 4 個專案內測試；兩個 manifest 加入 `testables: ["playsharedui"]` 後實際執行共用測試。主遊戲完整 Settings 的預設 party playlist 依賴執行中的歌庫，語言測試將此不相關欄位置空隔離，不改產品邏輯。
+- 使用者明確允許停止原本占用主專案的 Unity 建置程序後，才執行桌機測試與重建。Windows build report 成功，建置清單列出繁體目錄，成品 `resources.assets` 也確認含繁體檔名與譯文。
+- 以獨立 session 設定檔、靜音與本機測試連接埠啟動真正的 Windows EXE；視窗正常回應，主畫面「開始唱歌／隊伍與錦標賽／線上遊戲」繁體字形可見，離開後設定仍為 `zh-TW`。只擷取該遊戲視窗，結束自己啟動的程序，沒有覆寫使用者的設定檔。
+- Companion 原有設定會保存語言字串，但啟動時未套用；重新啟動後需在語言選單重選。此既有問題未納入本次翻譯修改。沒有重建手機包或驗證觸控／配對；T04 演唱流程阻礙不因本次翻譯而解除。
+- 可重現命令與結果見 [啟動指引](getting-started.md)；專用 XML、log 與視窗截圖保留於 session，不提交。
 
 ### T03C
 
@@ -90,6 +117,18 @@
 - 最終匯入／編譯及 Windows64 建置成功。格式／時間／主題 EditMode：38 通過、1 個既有 Ignore、0 失敗；最後一次建置 log 未找到 UXML scalar conversion 或 shader error。
 - 自動檢查第一次分別因舊版建置成功訊息及測試 root aggregate 狀態判讀過嚴而報錯；已核對實際 build report、產物及逐項測試結果，未重新命名或隱藏失敗測試。
 - 精確命令與已知限制記錄於 [啟動指引](getting-started.md)。T03 已完成，完整演唱驗證由 T04 繼續追蹤。
+
+### T03Z
+
+- 2026-10-24：使用者回報官方歌曲包下載後無法安裝，錯誤為 `ZipFile.get_Count()` 不存在；已確認是編譯與 Windows 成品的同名 SharpZipLib API 衝突，不是 URL 或檔案權限。
+- 已先更新架構 skill 與基線，再將歌曲 ZIP 匯入改用既有 BCL `ZipArchive`，不升級依賴、不修改 Unity 安裝／PackageCache，也不改 TAR 等其他消費端。
+- 保留背景解壓、Windows 短路徑 staging、覆寫相同匯入檔但保留其他檔案，以及成功後才登記歌庫的順序；補齊父目錄、UTF-8、空資料夾、全部 entry 的進度與失敗清理，拒絕目的地外的 entry。
+- `ArchiveExtractionTest`：10 個 PlayMode 案例全部通過、無略過，涵蓋中文／巢狀檔名、大小寫副檔名、進度、覆寫、路徑逸出及無效／遺失／不支援／空 ZIP；成功與失敗皆回到主執行緒。命令見 [啟動指引](getting-started.md)。
+- `StandaloneWindows64` test runner 因既有其他 PlayMode 測試找不到 `VisualElementTestUtils` 而編譯失敗，未擴張修復無關測試，也未把此命令記為通過。
+- 正常 Windows 建置的最終報告為 `Build Finished, Result: Success.`。以隔離設定啟動該 EXE，從歌庫下載 UI 經 loopback 匯入使用者已下載的官方 301,329,787-byte ZIP，沒有再次連外下載 300 MB。
+- 實際解壓 217 個檔案，逐檔長度與 SHA-256 全部吻合；包含 85 個 `.txt`、37 個 MP3、13 個 OGG。完成後 UI 顯示新增資料夾，隔離設定的 `SongDirs` 已保存對應路徑；不是只由測試工具自行解壓。
+- 證據保存在 session 的 `zip-import-playmode-results.xml`、`zip-import-windows-build.log`、`zip-import-native-results.json` 及 `zip-song-library-imported.png`。已正常關閉測試 player、停止 loopback helper，刪除精確的新建測試匯入目錄／ZIP 副本／隔離設定；原下載 ZIP 與使用者設定保留。
+- 原生介面仍會提示自動新增資料夾與既有父歌庫重疊，這是原有歌庫註冊行為，不影響解壓成功，也未在本次順手改寫。完整演唱驗收不屬本次 ZIP 修復。
 
 ### T04
 

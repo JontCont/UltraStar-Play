@@ -1,0 +1,11 @@
+{
+    "name": "SongArchive.Tests",
+    "references": [
+        "Scenes",
+        "playshared"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "autoReferenced": false
+}
