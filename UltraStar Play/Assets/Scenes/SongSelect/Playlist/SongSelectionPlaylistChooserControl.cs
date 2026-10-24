@@ -69,7 +69,8 @@ public class SongSelectionPlaylistChooserControl : INeedInjection, IInjectionFin
     private void UpdateItems()
     {
         items = playlistManager.GetPlaylists(true, true)
-            .OrderBy(playlist => playlist.Name)
+            .OrderBy(playlist => playlist is UltraStarAllSongsPlaylist ? 0 : 1)
+            .ThenBy(playlist => playlist.Name)
             .ToList();
 
         playlistDropdownField.choices = items

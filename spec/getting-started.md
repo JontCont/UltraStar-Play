@@ -83,6 +83,14 @@
 & $Unity -batchmode -projectPath '.\UltraStar Play' -runTests -testPlatform StandaloneWindows64 -buildTarget Win64 -testFilter ArchiveExtractionTest -testResults "$Evidence\zip-import-standalone-results.xml" -logFile "$Evidence\zip-import-standalone.log"
 ```
 
+### 加歌後選歌頁空白
+
+1. 在 **設定 → 歌曲** 登記並啟用根歌庫，譜面放在其子資料夾；新增檔案後重新啟動遊戲。
+2. 確認譜面的 `#MP3`、`#VIDEO`、`#COVER` 與同目錄實際檔名完全一致。下載工具的輸出名稱未必與原譜面相同；修改前先備份，不要為了修檔名改動音符或 GAP。
+3. 點選歌搜尋框旁的漏斗，播放清單選「所有歌曲」，或用面板底部重設清除篩選。
+
+2026-10-24 已修正繁中、簡中與日文把空的 `Favorites` 排在「所有歌曲」前面的問題。請關閉舊程序後重新開啟上方 Windows 成品；新版預設首項固定為所有歌曲，仍可手動選其他清單。四語 PlayMode 4 項通過，重建後已用隔離設定實際看到本機歌曲卡片及封面，離開再回選歌仍正常。這不代表已校正該歌曲的影音／歌詞同步或驗證評分。
+
 ### VS Code 的 Unity.Sdk／NU1503 訊息
 
 建議使用獨立的 **Unity** profile。2026-10-24 已在 VS Code Insiders 的此 profile 安裝 Microsoft 官方 Unity extension，並自動加入 C# Dev Kit、C#、.NET Install Tool 三個依賴；沒有搬入其他 profile 的全端開發套件。[擴充套件建議](../.vscode/extensions.json) 只列官方 Unity extension，其依賴由 VS Code 處理。這與 Unity Package Manager 中的 `Visual Studio Editor` 套件不同，兩者都需要；本專案已使用相容版本，不要另裝舊的 `Visual Studio Code Editor` Unity 套件。

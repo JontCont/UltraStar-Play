@@ -16,7 +16,7 @@
 | T03Z | 修正下載歌曲 ZIP 匯入 | done | T03 | 10 個 PlayMode 案例通過、Windows 重建成功；原生 UI 匯入官方 301 MB 包，217 個檔案逐一 SHA-256 相符並登記歌庫路徑；獨立 test runner 限制另列 |
 | T03M | 提供獨立 MP3／MP4 直接網址下載工具 | done | - | Python 標準函式庫 CLI、中文使用文件及 README 入口完成，17 項本機測試通過；不處理 YouTube、轉檔或 Unity 整合 |
 | T03Y | 加入獨立工具的 YouTube 支援 | done | T03M | 30 項測試通過，含真實本機 yt-dlp／FFmpeg 的三種模式；公開授權 YouTube 影片實際轉出 MP3 並以 ffprobe 驗證，未下載商業 MV |
-| T03S | 修正繁中選歌預設為空清單 | in_progress | T03L | 所有歌曲不受翻譯排序影響而固定首項；四語清單選取／重設回歸及原生歌庫可見驗證 |
+| T03S | 修正繁中選歌預設為空清單 | done | T03L | 四語 PlayMode 4 項通過，Windows 重建成功；隔離繁中設定實際顯示本機歌曲卡片，清單為「所有歌曲」，離開再進入仍可見；既有選單測試逾時另列 |
 | T04 | 驗證未翻新遊戲流程 | blocked | T03 | 核心 PlayMode 測試等待 SingScene 逾時；需排除並在 player 完成選歌、收音、演唱、結算 |
 | T05 | 核對實際架構並更新 skills | pending | T04 | 確認 UI、音訊、評分、資料與連線邊界；研究假設與本機事實分開記錄 |
 | T06 | 盤點畫面與相容需求 | pending | T04 | 列出頁面、既有操作、輸入裝置、資料、在地化與失敗情境 |
@@ -32,6 +32,16 @@
 | T16 | 封裝 Windows 成品與交付文件 | pending | T15 | 成品在確認環境通過驗收；授權、啟動方法、限制及 skills 與交付一致 |
 
 ## 執行紀錄
+
+### T03S
+
+- 2026-10-24：本機譜面原本引用不存在的 MP3 名稱，VIDEO 也不是實際影片檔；備份後只修 MP3／VIDEO 並補 COVER，三個引用均確認檔案存在。原繁中歌詞與全部音符、節拍、音高、GAP 不變；私人歌檔不納入 repository。
+- 修正引用後，隔離成品仍空白；透過開發頁 Copy Log 取得當次記憶體紀錄，確認 `Found 1 songs`。根因為清單名稱排序令空的 `Favorites` 排在本地化「所有歌曲」之前，而預設、重設與 toggle-back 都依賴首項。已讓 `UltraStarAllSongsPlaylist` 固定首項，其餘仍按名稱排序，保留既有明確選取及 party-mode 分支。
+- 新增 [四語清單測試](<../UltraStar Play/Assets/Tests/PlayModeTests/SongSelectLocalizedPlaylistTest.cs>) 與必需的 ProTrans 測試組件引用。修正前 **1 通過、3 失敗**，日文、簡中及繁中均實際讀到第一項 `Favorites`；修正後 **4 通過、0 失敗、0 略過**，涵蓋真實 chooser／dropdown、單首合成歌曲可見、手動選取、重設與 toggle-back。
+- 最終命令：`& $Unity -batchmode -projectPath '.\UltraStar Play' -runTests -testPlatform PlayMode -testFilter 'SongSelectLocalizedPlaylistTest.*' -testResults "$Evidence\song-playlist-final-results.xml" -logFile "$Evidence\song-playlist-final.log"`：**4 通過**。
+- 擴充合跑 `-testFilter 'SongSelectLocalizedPlaylistTest.*|SongSelectPlaylistTest'`：4 通過、1 失敗。既有 `SongSelectPlaylistTest.PlaylistShouldWork` 在第 73 行等待歌曲選單項目逾時；移除排序修正後單獨重跑仍於同處失敗（`song-playlist-existing-baseline-results.xml`），不是本次變更新增，未擴修既有選單問題。
+- `& $Unity -batchmode -quit -projectPath '.\UltraStar Play' -buildTarget Win64 -executeMethod MainGameBuildTools.BuildWindows64 -logFile "$Evidence\song-playlist-windows-build.log"`：**Build Finished, Result: Success.**
+- 用重建的正常 Windows 成品、靜音隔離繁中設定和使用者實際歌庫驗證：歌曲卡片及 cover 可見，篩選頁顯示「所有歌曲」，返回主畫面再進入仍可見。證據為 session 的 `song-load-selection-fixed.png`、`song-load-playlist-fixed.png`、`song-load-selection-revisited.png`。測試程序已正常關閉，使用者 Settings.json 前後 SHA-256 不變；沒有驗證實際演唱同步或評分。
 
 ### T03Y
 
