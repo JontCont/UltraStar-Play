@@ -7,7 +7,7 @@ This directory is the single source of truth for project-specific AI guidance. D
 - Refresh UltraStar Play as a Unity desktop application, initially targeting Windows.
 - Keep music, charts, settings, and results local. A website, NAS deployment, and a new backend are not required.
 - Preserve the existing singing engine and intended behavior. UI refresh does not authorize scoring, chart-format, audio, or protocol changes.
-- Upstream source is imported at commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f` in the workspace root on branch `refactor/desktop-refresh`. Git remote `upstream` points to the public source repository; no publishing remote is configured.
+- Upstream source is imported at commit `a4aaa0b31327062a92d12b5e4cab4d80777f2a3f` in the workspace root on branch `refactor/desktop-refresh`. Git remote `origin` points to `https://github.com/JontCont/UltraStar-Play.git`; `upstream` retains the official source repository. Do not push without user authorization.
 - Source integrity has been checked, but dependencies have not been restored and Unity builds or runtime tests have not been run. Do not equate imported source with a runnable game.
 
 ## Required workflow

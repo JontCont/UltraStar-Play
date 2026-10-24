@@ -22,7 +22,7 @@
 - 共用 AI 指引、開發 skill、架構 skill。
 - 已核對來源與 Git 完整性的上游原始碼；原有規劃文件均保留。
 
-本機分支為 `refactor/desktop-refresh`，來源 remote 為 `upstream`。尚未建立本專案提交或推送，也未還原依賴、進行 Unity 建置或實機測試。
+本機分支為 `refactor/desktop-refresh`，專案 remote `origin` 為 [JontCont/UltraStar-Play](https://github.com/JontCont/UltraStar-Play)，官方來源保留為 `upstream`。尚未建立本專案提交或推送，也未還原依賴、進行 Unity 建置或實機測試。
 
 ## 翻新範圍
 
@@ -45,7 +45,7 @@
 
 ## 尚待決定
 
-1. 後續與上游同步的節奏，以及本專案的發布儲存庫；目前固定在已確認的 commit，不自動合併上游更新。
+1. 後續與上游同步的節奏；目前固定在已確認的 commit，不自動合併上游更新。
 2. 翻新頁面、視覺方向、目標螢幕與必要輸入裝置。
 3. 第一版是否必須支援手機，以及具體是點歌、控制還是麥克風。
 4. 最低 Windows 環境、測試硬體與封裝方式。
