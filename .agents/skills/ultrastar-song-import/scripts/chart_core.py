@@ -217,6 +217,15 @@ def check_chart(text: str, expected_phrases: list[str], duration_seconds: float)
             "distinct_pitches": len(distinct), "end_seconds": end_seconds, "pitch_windows": windows}
 
 
+def destination_folder(library: Path, artist: str, title: str) -> Path:
+    return library / safe_name(f"{artist}-{title}")
+
+
+def assert_destination_free(folder: Path) -> None:
+    if any(folder.glob("*.txt")) or (folder / REVIEW_NAME).exists():
+        raise FileExistsError(f"{folder} already has a chart; refusing to overwrite or duplicate it")
+
+
 def publish_draft(work: Path, library: Path) -> Path:
     source = read_json(work / "source.json")
     recognition = read_json(work / "recognition-check.json")
@@ -225,9 +234,8 @@ def publish_draft(work: Path, library: Path) -> Path:
         raise ChartError("Draft chart or review report is missing; run render first")
     chart_bytes = (work / chart_name).read_bytes()
     check_chart(chart_bytes.decode("utf-8"), source["phrases"], recognition["duration"])
-    folder = library / safe_name(f"{source['artist']}-{source['title']}")
-    if any(folder.glob("*.txt")) or (folder / REVIEW_NAME).exists():
-        raise FileExistsError(f"{folder} already has a chart; refusing to overwrite or duplicate it")
+    folder = destination_folder(library, source["artist"], source["title"])
+    assert_destination_free(folder)
     media = [(Path(source["audio"]), source["audio_sha256"])]
     if source.get("video"):
         media.append((Path(source["video"]), source["video_sha256"]))

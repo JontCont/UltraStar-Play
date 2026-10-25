@@ -19,7 +19,7 @@ UltraStar Play 使用 [Unity](https://unity.com/) 遊戲引擎開發，主要程
 
 入門方式請參考[專案 Wiki](https://github.com/UltraStar-Deluxe/Play/wiki/First-Steps)。
 
-本機補充文件：[開啟 Windows 開發版](spec/getting-started.md)、[下載 MP3／MP4／YouTube 與加入歌曲](spec/download-media.zh-TW.md)。
+本機補充文件：[開啟 Windows 開發版](spec/getting-started.md)、[歌詞搜尋、下載 YouTube／直接網址與歌曲匯入](spec/download-media.zh-TW.md)。
 
 ### 如何參與
 

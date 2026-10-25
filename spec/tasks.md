@@ -14,8 +14,8 @@
 | T03L | 新增共用繁體中文 | done | T03, T03C | 783 項完整翻譯；兩端選單、格式／字形與設定序列化測試通過，Windows 已建置並實際顯示繁體主畫面；Companion 重啟限制另列 |
 | T03F | 修正中文設定頁缺字 | done | T03L | 10 個字型容量測試修前失敗、修後通過；主遊戲 30／Companion 24 項通過，Windows 設定與錄音頁及多次切換截圖驗證 |
 | T03Z | 修正下載歌曲 ZIP 匯入 | done | T03 | 10 個 PlayMode 案例通過、Windows 重建成功；原生 UI 匯入官方 301 MB 包，217 個檔案逐一 SHA-256 相符並登記歌庫路徑；獨立 test runner 限制另列 |
-| T03M | 提供獨立 MP3／MP4 直接網址下載工具 | done | - | Python 標準函式庫 CLI、中文使用文件及 README 入口完成，17 項本機測試通過；不處理 YouTube、轉檔或 Unity 整合 |
-| T03Y | 加入獨立工具的 YouTube 支援 | done | T03M | 30 項測試通過，含真實本機 yt-dlp／FFmpeg 的三種模式；公開授權 YouTube 影片實際轉出 MP3 並以 ffprobe 驗證，未下載商業 MV |
+| T03M | 提供獨立 MP3／MP4 直接網址下載工具 | done | - | Python 標準函式庫 CLI、中文使用文件及 README 入口完成；直接網址下載回歸通過，保持原始位元組、不轉檔；YouTube 另見 T03Y，不整合 Unity |
+| T03Y | 加入 YouTube 雙格式下載與 skill 匯入串接 | done | T03M | 2026-10-25 重新核准支援；110 項工具測試通過，含真實 yt-dlp／FFmpeg 的 loopback 合成影音及替身 ML 匯入；Playwright 搜詞流程已寫入 skill，指定歌曲端到端與實唱未驗證 |
 | T03S | 修正繁中選歌預設為空清單 | done | T03L | 四語 PlayMode 4 項通過，Windows 重建成功；隔離繁中設定實際顯示本機歌曲卡片，清單為「所有歌曲」，離開再進入仍可見；既有選單測試逾時另列 |
 | T03A | 本機製作三首中文譜面初稿 | done | - | 使用者提供歌詞並核准本機模型；三份 AI 初稿已加入私人歌庫，9 項工具檢查通過；3 項遊戲解析檢查針對 1500 BPM 初稿，之後改為 274 BPM（Python 驗證通過；使用者回報遊戲內已成功計分）；不代表精修音高／同步或完整演唱驗收 |
 | T04 | 驗證未翻新遊戲流程 | blocked | T03 | 核心 PlayMode 測試等待 SingScene 逾時；需排除並在 player 完成選歌、收音、演唱、結算 |
@@ -59,6 +59,15 @@
 
 ### T03Y
 
+- 2026-10-25（本次）：使用者重新要求「歌手、歌名、YouTube 網址」串成完整流程。先選擇另供歌詞，之後進一步選擇由 skill 使用 Playwright 搜尋歌詞來源，再交給 scripts；不是在 Python 新增 Playwright 套件或 MCP 呼叫。只能保存已提供、授權或公有領域的歌詞，找不到可用全文或版本不明時停止並索取歌詞，不以編造文字或 ASR 補足。
+- [下載工具](../.agents/skills/ultrastar-song-import/scripts/download_media.py) 新增單支 watch／短網址／shorts／live／embed 的 YouTube 路由，去除追蹤及播放清單參數。yt-dlp 在獨立 staging 下載，再由 FFmpeg 產生 H.264／AAC MP4 與同來源 MP3；ffprobe 驗證兩檔後才發布，不覆寫，第二筆發布失敗回滾本次第一筆。直接網址下載原有行為保留，並拒絕重新導向至 YouTube 網頁。
+- [匯入工具](../.agents/skills/ultrastar-song-import/scripts/song_import.py) 的 `import` 新增 `--youtube`，與 `--audio` 互斥。歌庫、既有譜面與歌詞先檢查，失敗不下載。工作目錄保存使用者 `lyrics.txt`、來源 URL／SHA-256 與媒體；重試需相同來源及 hash。原始歌詞不複製至歌庫，避免被掃成另一份譜面；品質不足仍不發布，未修改 Unity、評分或既有本機流程。
+- 新增 skill 內的 [YouTube 依賴清單](../.agents/skills/ultrastar-song-import/scripts/requirements-media.txt)，`.\.venv\Scripts\python.exe -m pip install -r .agents\skills\ultrastar-song-import\scripts\requirements-media.txt`：全部已安裝，不新增全域套件。`where.exe nvm`／`where.exe node` 均為指定的 Scoop NVM 路徑，未切換版本或修改永久設定。
+- `.\.venv\Scripts\python.exe -B -m unittest discover -s .agents\skills\ultrastar-song-import\scripts -p "test_*.py" -q`：**110 通過、0 失敗、0 略過**。含直接下載回歸、URL 正規化、兩種 codec 實測、下載／轉檔失敗、不覆寫與回滾、缺詞不連網、下載 cache 驗證、品質 gate 失敗後 `--force` 重試，以及歌庫的媒體／譜面／審查報告輸出。真實 yt-dlp／FFmpeg 整合只用 loopback 合成影音，完整匯入則使用替身 ML；沒有下載真實歌曲或寫入使用者歌庫。
+- `song_import.py import --help`、`download_media.py --help`：成功；`.\.venv\Scripts\python.exe -m pip check`：**No broken requirements found**。四份修改／新增 Python 檔的 VS Code diagnostics 無錯誤。工作樹 `git diff --check` 通過；原已 staged 的使用文件有 EOF 空行警告，未改動使用者 index。
+- Playwright 成功開啟並讀取 Bing 的公有領域《詩經》搜尋結果，確認瀏覽器工具可操作；未以指定歌曲驗證授權／版本核對，也未做真實 YouTube 端到端下載、模型分析或遊戲實唱。相關限制已寫入 [使用文件](download-media.zh-TW.md)、skill 與架構基線。
+- 以下 direct-only 及 2026-10-24 YouTube 紀錄均為歷史，不代表本次驗證範圍。
+- 2026-10-25：使用者決定改為 direct-only。移除 YouTube 支援、yt-dlp 依賴清單與 YouTube 測試；`download_media.py` 與測試移入 `.agents/skills/ultrastar-song-import/scripts/`，根目錄 `scripts/` 已刪除。程式碼層面會拒絕 YouTube 網域，未對任何 YouTube 網址執行下載。以下 2026-10-24 紀錄為當時歷史，其中的 `scripts/` 路徑與 requirements 連結已不存在。
 - 2026-10-24：使用者另外要求支援 YouTube，與 T03M 最初選擇的直接網址模式分開追蹤。獨立工具加入 watch／短網址／shorts／live／embed 辨識與 `--format mp3|mp4|both`（預設 both），移除追蹤與播放清單參數，保留既有直接下載行為。
 - 以 Python fact-grounded coding skill 核對現有程式與官方 yt-dlp／EJS 文件，新增 optional [依賴清單](../scripts/requirements-media.txt)，僅在 repository 的 `.venv` 安裝 yt-dlp 2026.10.21 及 EJS 0.8.0 等依賴。未改全域 Python 套件或 Pylance 選用的 Python 3.12；實際執行與測試為 `.venv` Python 3.11.9。
 - 本機 FFmpeg／ffprobe 8.1.1 與既有 Scoop NVM 的 Node 24.19.0 已可用，沒有另裝或切換 Node、沒有修改永久環境變數。依賴缺漏、無效網址、下載／轉檔失敗及既有同名檔案均明確報錯。
@@ -71,7 +80,7 @@
 ### T03M
 
 - 2026-10-24：使用者選擇支援 MP3／MP4 的 HTTP(S) 直接下載網址，以及同時下載兩種檔案；此工具獨立於 Unity，不以演唱驗收或建置為前置。
-- 使用 Python fact-grounded coding skill，確認本機 Python 3.11.9；未安裝依賴、未修改遊戲或 Companion。新增 [下載工具](../scripts/download_media.py)、[測試](../scripts/test_download_media.py) 與 [中文文件](download-media.zh-TW.md)，繁體 README 提供入口。
+- 使用 Python fact-grounded coding skill，確認本機 Python 3.11.9；未安裝依賴、未修改遊戲或 Companion。新增 [下載工具](../.agents/skills/ultrastar-song-import/scripts/download_media.py)、[測試](../.agents/skills/ultrastar-song-import/scripts/test_download_media.py) 與 [中文文件](download-media.zh-TW.md)，繁體 README 提供入口。
 - 支援多網址、重新導向、中文檔名及串流寫檔；不覆寫既有檔案，檢查媒體檔頭及已知長度，錯誤明確回報並以非零代碼結束，當筆失敗／取消時清理暫存檔。保留原始媒體位元組，不轉檔、不產生譜面，也不解析 YouTube 網頁或繞過存取限制。
 - `python -B -m unittest discover -s scripts -p "test_download_media.py" -v`：17 通過、0 失敗。測試包含真正 CLI 子程序、兩種格式逐位元組比對、HTML／HTTP 錯誤、覆寫防護、逾時／取消及截斷清理；僅使用 loopback server 與自行產生的測試資料，沒有下載商業音樂或寫入使用者歌庫。
 - `python -B .\scripts\download_media.py --help`：成功；Git whitespace 檢查通過。未以本次腳本測試宣稱媒體可播放或核心演唱驗收完成。

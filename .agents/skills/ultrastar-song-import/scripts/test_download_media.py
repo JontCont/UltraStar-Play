@@ -102,6 +102,14 @@ class DownloadMediaTest(unittest.TestCase):
             self.download("/redirect-ftp")
         self.assertFalse(self.output.exists())
 
+    def test_refuses_youtube_urls_without_requesting_them(self) -> None:
+        for url in ("https://youtu.be/Uv_p43UAdBY", "https://www.youtube.com/watch?v=YacpC7sUXMM"):
+            with self.subTest(url=url), patch("download_media.build_opener") as opener:
+                with self.assertRaisesRegex(DownloadError, "local MP3/MP4"):
+                    download_media(url, self.output)
+                opener.assert_not_called()
+        self.assertFalse(self.output.exists())
+
     def test_handles_unicode_disposition_filename(self) -> None:
         target = self.download("/disposition")
         self.assertEqual(target.name, "\u6e2c\u8a66 \u6b4c\u66f2.mp3")

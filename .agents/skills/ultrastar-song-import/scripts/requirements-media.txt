@@ -1,0 +1,4 @@
+# Optional YouTube downloader. Direct HTTP(S) downloads use only the standard library.
+# FFmpeg (including ffprobe) and Node must already be on PATH.
+yt-dlp[default]==2026.10.21
+yt-dlp-ejs==0.8.0

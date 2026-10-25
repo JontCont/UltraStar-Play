@@ -1,9 +1,9 @@
 """Command-line entry point for the ultrastar-song-import skill.
 
-Stages write into a work folder outside the repository. `prepare` records the
-inputs, `analyze` runs the whole local pipeline, and `render`, `check`, and
-`publish` use only numpy and the standard library. ML stages cache their output;
-pass --force to recompute one. Logs never contain lyric text.
+`import` runs the whole flow in one command and stops at the first failed gate.
+The individual stages remain for re-running one step. ML stages cache their
+output; pass --force to recompute one. Library and work-root defaults come from
+the skill's .env file. Logs never contain lyric text.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ import argparse
 import gc
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -20,10 +21,12 @@ from chart_core import (
     DEFAULT_BPM,
     MAX_BPM,
     ChartError,
+    assert_destination_free,
     chart_file_name,
     chart_headers,
     chart_text,
     check_chart,
+    destination_folder,
     digest,
     log,
     lyric_phrases,
@@ -33,6 +36,8 @@ from chart_core import (
     write_json,
 )
 from ml_stages import align, crepe_pitch, measure_notes, pyin_pitch, separate
+from download_media import DownloadError, download_youtube, youtube_url
+from skill_config import default_work_folder, library_folder, read_env_file
 
 STAGE_OUTPUTS = {
     "separate": ("vocals.wav", "separation.json"),
@@ -129,6 +134,13 @@ def do_crepe(work: Path, force: bool) -> None:
     if force:
         clear_outputs(work, "crepe")
     run_ml(lambda: crepe_pitch(work))
+
+
+def do_tracker(work: Path, pitch: str, force: bool) -> None:
+    if pitch == "crepe":
+        do_crepe(work, force)
+    else:
+        do_pitch(work, force)
 
 
 def choose_tracker(work: Path, pitch: str) -> str:
@@ -242,7 +254,8 @@ def cmd_check(args) -> None:
 
 
 def cmd_publish(args) -> None:
-    chart = publish_draft(Path(args.work), Path(args.library))
+    library = library_folder(args.library, read_env_file())
+    chart = publish_draft(Path(args.work), library)
     log(f"Published draft chart to {chart.parent}")
 
 
@@ -250,12 +263,70 @@ def cmd_analyze(args) -> None:
     work = Path(args.work)
     do_separate(work, args.force)
     do_align(work, args.align_start, args.align_end, args.pool_accent_variants, args.force)
-    if args.pitch == "crepe":
-        do_crepe(work, args.force)
-    else:
-        do_pitch(work, args.force)
+    do_tracker(work, args.pitch, args.force)
     log(json.dumps(do_render(work, args.bpm, args.review_freestyle, args.pitch),
                    ensure_ascii=False))
+
+
+def cmd_import(args) -> None:
+    settings = read_env_file()
+    library = library_folder(args.library, settings)
+    work = Path(args.work) if args.work else default_work_folder(args.artist, args.title, settings)
+    assert_destination_free(destination_folder(library, args.artist, args.title))
+    lyrics = Path(args.lyrics) if args.lyrics else work / "lyrics.txt"
+    if args.youtube:
+        if args.video:
+            raise ChartError("--video cannot be combined with --youtube; the MP4 is downloaded automatically")
+        require(lyrics, "provide --lyrics or put your authorized lyrics in <work>\\lyrics.txt")
+        lyric_phrases(lyrics.read_text(encoding="utf-8-sig"), args.skip_lines)
+        saved_lyrics = work / "lyrics.txt"
+        if saved_lyrics.exists() and digest(saved_lyrics) != digest(lyrics):
+            raise ChartError("Work lyrics.txt differs from --lyrics; use a new work folder")
+        audio, video = youtube_inputs(work, args.youtube)
+        if lyrics.resolve() != saved_lyrics.resolve():
+            if not saved_lyrics.exists():
+                shutil.copyfile(lyrics, saved_lyrics)
+        lyrics = saved_lyrics
+    else:
+        audio, video = Path(args.audio), Path(args.video) if args.video else None
+    do_prepare(work, audio, video, lyrics,
+               args.artist, args.title, args.skip_lines)
+    do_separate(work, args.force)
+    do_align(work, args.align_start, args.align_end, args.pool_accent_variants, args.force)
+    do_tracker(work, args.pitch, args.force)
+    log(json.dumps(do_render(work, args.bpm, args.review_freestyle, args.pitch), ensure_ascii=False))
+    chart = publish_draft(work, library)
+    log(f"Published draft chart to {chart.parent}")
+
+
+def youtube_inputs(work: Path, url: str) -> tuple[Path, Path]:
+    canonical = youtube_url(url)
+    manifest = work / "download.json"
+    if manifest.exists():
+        try:
+            cached = read_json(manifest)
+        except json.JSONDecodeError as error:
+            raise ChartError("Invalid download.json; use a new work folder") from error
+        if not isinstance(cached, dict) or any(
+                not isinstance(cached.get(key), str)
+                for key in ("url", "audio", "video", "audio_sha256", "video_sha256")):
+            raise ChartError("Incomplete download.json; use a new work folder")
+        if cached.get("url") != canonical:
+            raise ChartError("Work folder has a different YouTube source; use a new work folder")
+        paths = []
+        for kind in ("audio", "video"):
+            path = require(Path(cached[kind]), "cached download is incomplete; use a new work folder")
+            if digest(path) != cached[f"{kind}_sha256"]:
+                raise ChartError("Cached download changed; use a new work folder")
+            paths.append(path)
+        log("Reusing verified YouTube media")
+        return paths[0], paths[1]
+    if (work / "source.json").exists():
+        raise ChartError("Work folder already describes local media; use a new work folder for YouTube")
+    audio, video = download_youtube(canonical, work / "media")
+    write_json(manifest, {"url": canonical, "audio": str(audio.resolve()), "video": str(video.resolve()),
+                          "audio_sha256": digest(audio), "video_sha256": digest(video)})
+    return audio, video
 
 
 def add_alignment_options(parser: argparse.ArgumentParser) -> None:
@@ -276,7 +347,7 @@ def add_render_options(parser: argparse.ArgumentParser) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Build an AI draft UltraStar chart from local media and supplied lyrics.")
+        description="Build an AI draft UltraStar chart from local or authorized YouTube media and supplied lyrics.")
     stages = parser.add_subparsers(dest="stage", required=True)
 
     def add(name: str, help_text: str) -> argparse.ArgumentParser:
@@ -314,7 +385,7 @@ def build_parser() -> argparse.ArgumentParser:
     check.set_defaults(run=cmd_check)
 
     publish = add("publish", "Copy the validated draft into the song library")
-    publish.add_argument("--library", required=True, help="UltraStar song library folder")
+    publish.add_argument("--library", help="UltraStar song library folder (default: ULTRASTAR_LIBRARY in .env)")
     publish.set_defaults(run=cmd_publish)
 
     analyze = add("analyze", "Run separate, align, pitch, and render in order")
@@ -323,6 +394,23 @@ def build_parser() -> argparse.ArgumentParser:
     add_alignment_options(analyze)
     add_render_options(analyze)
     analyze.set_defaults(run=cmd_analyze)
+
+    full = stages.add_parser("import", help="Run the whole flow: prepare, analyze, render, check, publish")
+    full.add_argument("--artist", required=True)
+    full.add_argument("--title", required=True)
+    media = full.add_mutually_exclusive_group(required=True)
+    media.add_argument("--audio", help="Local audio file (MP3 recommended)")
+    media.add_argument("--youtube", help="Single authorized YouTube video; downloads both MP3 and MP4")
+    full.add_argument("--video", help="Optional local video file for #VIDEO")
+    full.add_argument("--lyrics", help="UTF-8 lyric text in singing order (default: <work>\\lyrics.txt)")
+    full.add_argument("--work", help="Work folder (default: ULTRASTAR_WORK_ROOT\\<artist-title>)")
+    full.add_argument("--library", help="UltraStar song library folder (default: ULTRASTAR_LIBRARY in .env)")
+    full.add_argument("--skip-lines", type=int, default=0, help="Leading header lines to ignore")
+    full.add_argument("--force", action="store_true", help="Recompute ML stages")
+    full.add_argument("--pitch", choices=("crepe", "pyin"), default="crepe")
+    add_alignment_options(full)
+    add_render_options(full)
+    full.set_defaults(run=cmd_import)
     return parser
 
 
@@ -330,11 +418,16 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         args.run(args)
-    except (ChartError, FileExistsError, OSError, subprocess.CalledProcessError) as error:
+    except (ChartError, DownloadError, FileExistsError, OSError, UnicodeError,
+            subprocess.CalledProcessError) as error:
         log(f"ERROR: {error}")
         return 1
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        log("Cancelled; completed work is retained for retry")
+        sys.exit(130)

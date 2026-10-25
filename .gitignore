@@ -45,6 +45,9 @@ __pycache__/
 *.py[cod]
 .venv/
 
+# Song import skill local settings (library path); commit .env.example instead
+.agents/skills/ultrastar-song-import/.env
+
 # Secrets file (e.g. act tool to run GitHub Actions)
 .secrets
 
