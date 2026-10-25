@@ -1,0 +1,14 @@
+# ML stages (separate, align, pitch, crepe) of the ultrastar-song-import skill.
+# Direct dependencies only; pins match the versions verified in the project .venv.
+# Install (CPU wheels):
+#   .venv\Scripts\python.exe -m pip install -r .agents\skills\ultrastar-song-import\scripts\requirements-ml.txt
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.8.0+cpu
+torchaudio==2.8.0+cpu
+torchcrepe==0.0.24
+transformers==4.57.1
+librosa==0.11.0
+numpy==2.4.6
+soundfile==0.13.1
+opencc-python-reimplemented==0.1.7
+pypinyin==0.55.0
