@@ -131,6 +131,15 @@
 
 ## AI 工具與建置
 
+### Windows 區網測試安裝檔
+
+- 2026-10-26：使用者要求兩台 Windows 分別執行主遊戲及 Companion，並核准安裝 Inno Setup 編譯工具。這是測試封裝，不代表 T16 正式發行或 T04 演唱驗收完成。
+- 封裝邊界：沿用 Unity Windows64 player；已以 `tools/windows-installer/Build-Installers.ps1` 呼叫 Inno Setup 6，建立各自獨立 AppId 的每使用者安裝檔，不要求管理員、不自動修改防火牆、不打包私人歌曲、設定、模型或 Unity 備份符號。兩端仍沿用既有 persistent data，不因安裝位置不同而另建 profile。
+- Companion 增加與主遊戲相同的 Windows64 建置入口；安裝封裝補入共用媒體副檔名目錄及授權文字，不改網路或媒體處理邏輯。
+- 原始碼確認：LiteNetLib discovery／連線使用 UDP，主遊戲預設 `34567`；Companion 可留空主機位址自動探索，或指定主遊戲的 IP。主遊戲 HTTP 預設 TCP `6789`，實際 port 由連線回覆提供；HTTP 權限仍沿用既有設定。
+- 已驗證：兩份安裝檔編譯、隔離安裝，513／213 個來源 runtime 檔案逐一 SHA-256 相符，另驗證授權及 Companion 媒體目錄；安裝後雙端可回應、loopback 實際協定版本 7 握手／權限／MicProfile 交換與 HTTP hello 成功。重新安裝／解除安裝保留未知 marker，既有設定 hash 不變；測試程序與安裝目錄已清理。
+- 兩端均觀察到 TextMeshPro 預設字型的啟動空參照錯誤，未阻止上述配對；不宣稱 log 無錯。兩台電腦的探索、防火牆、路由、控制及麥克風仍待實機測試，不能以 loopback 結果代替；步驟及命令見 [啟動指引](getting-started.md)。
+
 - AI 製譜與即時演唱評分是不同流程。
 - 2026 年整合使用 UVR、Parakeet、RMVPE 與 NeMo Forced Aligner 等工具。
 - 模型與 FFmpeg 函式庫預設不隨建置下載；UI 翻新不得假定它們存在。

@@ -18,6 +18,7 @@
 | T03Y | 加入 YouTube 雙格式下載與 skill 匯入串接 | done | T03M | 2026-10-25 重新核准支援；110 項工具測試通過，含真實 yt-dlp／FFmpeg 的 loopback 合成影音及替身 ML 匯入；Playwright 搜詞流程已寫入 skill，指定歌曲端到端與實唱未驗證 |
 | T03S | 修正繁中選歌預設為空清單 | done | T03L | 四語 PlayMode 4 項通過，Windows 重建成功；隔離繁中設定實際顯示本機歌曲卡片，清單為「所有歌曲」，離開再進入仍可見；既有選單測試逾時另列 |
 | T03A | 本機製作三首中文譜面初稿 | done | - | 使用者提供歌詞並核准本機模型；三份 AI 初稿已加入私人歌庫，9 項工具檢查通過；3 項遊戲解析檢查針對 1500 BPM 初稿，之後改為 274 BPM（Python 驗證通過；使用者回報遊戲內已成功計分）；不代表精修音高／同步或完整演唱驗收 |
+| T03W | 封裝雙 Windows 區網連線測試版 | done | T03, T03C | 雙 Setup.exe、隔離安裝與 513／213 個 runtime 檔案 hash、loopback 配對／權限／MicProfile／HTTP、重新安裝及解除安裝通過；雙機網路及麥克風仍需實機測試，不等同 T16 |
 | T04 | 驗證未翻新遊戲流程 | blocked | T03 | 核心 PlayMode 測試等待 SingScene 逾時；需排除並在 player 完成選歌、收音、演唱、結算 |
 | T05 | 核對實際架構並更新 skills | pending | T04 | 確認 UI、音訊、評分、資料與連線邊界；研究假設與本機事實分開記錄 |
 | T06 | 盤點畫面與相容需求 | pending | T04 | 列出頁面、既有操作、輸入裝置、資料、在地化與失敗情境 |
@@ -33,6 +34,16 @@
 | T16 | 封裝 Windows 成品與交付文件 | pending | T15 | 成品在確認環境通過驗收；授權、啟動方法、限制及 skills 與交付一致 |
 
 ## 執行紀錄
+
+### T03W
+
+- 2026-10-26：使用者確認兩台 Windows 分別執行主遊戲／Companion，要求 Setup.exe，並核准安裝官方 Inno Setup 6。已安裝每使用者編譯器 `6.7.3`，沒有更動 Unity 或協定。
+- 新增 Companion Windows64 Unity／Nuke 入口，以及 `tools/windows-installer/Build-Installers.ps1` 與共用 Inno script。兩份成品位於 `Build/Installers`，附 SHA256SUMS；採獨立 AppId、每使用者安裝、捷徑及解除安裝，不寫防火牆規則、不夾帶私人內容或覆寫設定。補入 Companion 缺少的共用媒體副檔名資料檔及授權文字。
+- `dotnet build '.\NukeBuild\NukeBuild.csproj' --no-restore --nologo` 通過（0 警告／錯誤）；`CompanionAppBuildTools.BuildWindows64` Unity 成功；`.\tools\windows-installer\Build-Installers.ps1 -Version '1.7.1-beta1-lan-test.20261026'` 成功。缺少 compiler 與不完整 player 的錯誤路徑均明確拒絕。
+- session 證據位於 `d4b643ef-8521-4713-86b4-8f268050ee60/files/windows-installers`：安裝 payload 比對主遊戲 513／Companion 213 檔及授權成功；兩個安裝後的原生視窗可回應，隔離設定下完成 loopback UDP 協定 7 握手、權限／MicProfile 交換、登記 client，以及 HTTP hello。
+- 重新安裝及解除安裝通過，保留自放的未知檔案 marker、移除專屬解除安裝登錄，既有兩端設定檔 hash 不變；測試程序與安裝目錄均已清理。啟動有 `TMP_Settings.get_defaultFontAsset` 空參照錯誤，未影響此次配對，未以封裝之名擴大修正。
+- 最初封裝因官方編譯器沒有隨附繁中安裝語系而明確失敗，改用其內附英文安裝精靈後通過；應用程式仍可選繁中。最初 runtime 等待 Unity `-logFile` 逾時，確認程式重導向 Serilog 每日 log 後，改讀本次追加片段並取得成功證據；不刪除使用者 log。
+- 兩台實體電腦的 discovery／防火牆／路由、遠端操作、麥克風與完整演唱未驗收；此任務只完成測試封裝，不推進受 T04 等阻擋的 T16 正式交付。操作與重建命令見 [啟動指引](getting-started.md)。
 
 ### T03A
 

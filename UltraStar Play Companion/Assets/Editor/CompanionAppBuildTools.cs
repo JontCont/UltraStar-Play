@@ -79,6 +79,14 @@ public static class CompanionAppBuildTools
         Debug.Log($"Companion URP configured: {pipelinePath}, {QualitySettings.names.Length} quality levels inherit the default.");
     }
 
+    [MenuItem("Build/Windows64")]
+    public static void BuildWindows64()
+    {
+        CustomBuildOptions customBuildOptions = CreateCustomBuildOptions(BuildTarget.StandaloneWindows64);
+        customBuildOptions.compressOutputFolderToZipFile = false;
+        BuildUtils.PerformCustomBuild(customBuildOptions);
+    }
+
     [MenuItem("Build/Android - Build apk")]
     public static void BuildAndroidApk()
     {

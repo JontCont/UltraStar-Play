@@ -21,6 +21,8 @@ The root `build.ps1` can bootstrap .NET and restore packages. Do not run even it
 
 The main-game Nuke restore, Unity import/compilation, focused EditMode tests, and Windows builds have succeeded. The core-game-loop PlayMode test still times out before SingScene; do not treat a produced EXE as a verified singing session. Use the [upgrade skill](../ultrastar-play-unity-upgrade/SKILL.md) and [opening guide](../../../spec/getting-started.md) for exact evidence. Do not repeat dependency restoration unless required.
 
+Windows LAN-test Setup.exe files for both projects can be reproduced with `tools/windows-installer/Build-Installers.ps1` using Inno Setup 6 and existing Mono Windows64 players. Companion now has `CompanionAppBuildTools.BuildWindows64` and Nuke `BuildCompanionAppWindows64`; its app version remains `1.3.4`, distinct from the main game's `1.7.1-beta1`. Installers add canonical license texts and Companion's missing media-extension catalogue, without changing application protocols. Installed-player loopback handshake, permissions/MicProfile exchange, HTTP hello, payload hashes and reinstall/uninstall passed; two-PC networking, microphone and full singing remain unverified. Startup TMP default-font exceptions were observed and are not fixed by packaging. The opening guide records steps, boundaries and evidence.
+
 ## Procedure
 
 1. Select a task whose prerequisites are complete. If the baseline or visual direction needed by that task is not approved, ask rather than guessing.

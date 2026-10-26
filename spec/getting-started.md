@@ -10,6 +10,64 @@
 
 請保留同目錄的 `UnityPlayer.dll`、資料夾及其他依賴，不要只搬 EXE。這個 Build 目錄不納入版本控制，重新 clone 後需要重新建置；目錄名稱保留上游版本號，不代表本專案已發行新版本。
 
+### 用安裝檔測試兩台 Windows 連線
+
+2026-10-26 已產生兩份 **Windows 64-bit 區網測試版**：
+
+| 裝置 | 安裝檔 |
+|---|---|
+| A：執行主遊戲 | [UltraStarPlay-Windows64-Setup.exe](../Build/Installers/UltraStarPlay-Windows64-Setup.exe)，約 171 MiB |
+| B：執行 Companion | [UltraStarPlayCompanion-Windows64-Setup.exe](../Build/Installers/UltraStarPlayCompanion-Windows64-Setup.exe)，約 73 MiB |
+
+各自只需複製一個 Setup.exe，不需要搬 Unity 專案或另外安裝 Unity／.NET。[SHA256SUMS.txt](../Build/Installers/SHA256SUMS.txt) 可供傳輸後核對。成品在 ignored `Build` 目錄，不會隨 clone 取得。
+
+安裝精靈使用英文；程式內仍可選繁體中文。安裝位置預設為目前使用者的 `%LOCALAPPDATA%\Programs\UltraStar Play LAN Test` 或 `UltraStar Play Companion LAN Test`，不要求管理員權限，提供開始功能表捷徑與解除安裝。這是未簽章的本機測試成品，可能出現 SmartScreen 提示；只執行你確認來源及校驗碼的檔案。
+
+安裝檔不夾帶私人歌曲或設定、不自動修改防火牆，也不刪除既有歌庫。**執行後會沿用各程式既有的本機使用者資料**；LAN Test 名稱只區分安裝位置，不代表另建設定 profile。解除安裝保留使用者資料。
+
+#### 連線步驟
+
+1. A、B 接上同一個可信任的區域網路，可使用同一路由器下的 Wi-Fi 或網路線；不要使用隔離裝置的訪客網路。Windows 的私人網路設定只用在可信任網路。
+2. A 安裝並開啟主遊戲。先關閉其他舊版主遊戲，避免重複占用連線埠。在 PowerShell 執行 `ipconfig`，記下實際連線網卡的 IPv4，例如 `192.168.1.10`；不要使用 VPN／虛擬網卡的位址。
+3. B 安裝並開啟 Companion。預設會自動探索；若持續顯示連線中，按右上角齒輪、開啟 **Developer Mode／開發者模式**，將 **IP Address of Main Game** 設為 A 的 IPv4，**Connection Port** 保持 `34567`。只輸入 IP，不加 `http://` 或 port；另一台電腦不能使用 `127.0.0.1`。
+4. Windows 防火牆若詢問，僅在可信任的**私人網路**允許這兩個程式，不要關閉整個防火牆或設定路由器對外轉送。主要通訊為 A 的 **UDP 34567**（探索／配對／訊息）與 **TCP 6789**（HTTP 功能）；若手動改過遊戲設定，須使用實際 port。Companion 使用動態 UDP 本機埠，宜採程式規則而非只在 B 開放 34567。
+5. A 進入 **設定 → 手機應用程式**（Companion 應用程式），確認出現 B；B 的連線中畫面應切換為麥克風／歌曲／控制頁籤。如果要求權限已開啟，僅授予這台測試裝置所需的點歌或模擬輸入權限。
+6. 如要測收音，在 B 的 Windows 麥克風隱私設定允許桌面應用程式存取，並在 Companion 選擇錄音裝置；再於 A 選擇該 Companion 麥克風。**配對成功不代表收音、延遲或演唱評分已驗收**；現有流程傳送音高事件，不代表會把 B 的人聲串流到 A 擴音。
+
+只測 TCP 是否可達，可在 B 執行 `Test-NetConnection 192.168.1.10 -Port 6789`（改成 A 的 IP）。它**不能驗證 UDP 配對**。若 TCP 通但仍無法配對，核對 UDP 程式規則、兩端 34567 設定及有無第二個主遊戲；若已配對但點歌不可用，另查 HTTP、防火牆與 Companion 權限。
+
+診斷記錄位於 `%USERPROFILE%\AppData\LocalLow\ultrastar\UltraStar Play\Logs` 及 `UltraStar Play Companion\Logs`。啟用開發者模式後也能複製記錄；不要只依 Unity `-logFile` 判斷，程式會將自訂記錄導向自己的每日 log。
+
+#### 重建安裝檔
+
+先關閉對應 Unity Editor。既有主遊戲 Windows player 可直接封裝；需要更新程式時先重建：
+
+```powershell
+$Unity = 'C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor\Unity.exe'
+& $Unity -batchmode -quit -projectPath '.\UltraStar Play' -buildTarget Win64 -executeMethod MainGameBuildTools.BuildWindows64 -logFile "$PWD\Build\main-windows.log"
+& $Unity -batchmode -quit -projectPath '.\UltraStar Play Companion' -buildTarget Win64 -executeMethod CompanionAppBuildTools.BuildWindows64 -logFile "$PWD\Build\companion-windows.log"
+
+# 只在缺少 Inno Setup 6 且核准安裝工具後執行：
+winget install --id JRSoftware.InnoSetup -e --source winget --scope user
+
+.\tools\windows-installer\Build-Installers.ps1 -Version '1.7.1-beta1-lan-test.20261026'
+```
+
+[封裝腳本](../tools/windows-installer/Build-Installers.ps1) 只打包現成 player，不會自動建置 Unity、還原依賴或安裝工具；可用 `-MainGameBuildPath`、`-CompanionBuildPath`、`-OutputDirectory`、`-IsccPath` 指定路徑。預設來源分別為主遊戲 `1.7.1-beta1` 與 Companion `1.3.4`，兩端已驗證使用相容的協定版本 7；安裝檔版本標籤不是修改上游應用程式版本。
+
+封裝保留 Unity runtime 與授權文字，排除 `BackUpThisFolder_ButDontShipItWithYourGame`、PDB／MDB。Companion 安裝 payload 另外補入主遊戲的共用 FFmpeg 副檔名資料檔，避免啟動時缺少資料；不新增 FFmpeg 執行檔或變更媒體邏輯。
+
+#### 本次驗證範圍
+
+- `dotnet build '.\NukeBuild\NukeBuild.csproj' --no-restore --nologo`：通過，0 警告、0 錯誤；包含新增的 `BuildCompanionAppWindows64` target。
+- 上述 `CompanionAppBuildTools.BuildWindows64`：Unity `Build Finished, Result: Success`，產生完整主場景 player，不使用舊的隔離渲染 smoke build。
+- 上述封裝命令：兩份 Setup.exe 與 SHA-256 清單產生成功。未重新建置未修改的主遊戲，使用現有本機 Windows 成品。
+- 兩份安裝檔均以 `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR=... /LOG=...` 在 session 測試目錄安裝；主遊戲 513、Companion 213 個來源 runtime 檔案逐一 SHA-256 相符，另外核對授權與新增副檔名資料檔，沒有備份／符號檔。
+- 使用 `--settingsPath` 隔離設定啟動安裝後的兩個原生視窗，確認可回應；`127.0.0.1:34567` 完成實際 ConnectRequest／ConnectResponse、權限及 MicProfile 交換，主遊戲保存測試 client；HTTP `GET /api/rest/hello/installer-test` 回傳 `Hello installer-test`。
+- 重新安裝與 `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=...` 解除安裝皆通過，保留自放 marker、移除專屬解除安裝登錄；既有兩端設定檔 hash 不變，測試 player 與安裝目錄已清理。
+- 兩端啟動均觀察到 TextMeshPro 的 `TMP_Settings.get_defaultFontAsset` 空參照錯誤，來源 runtime 檔案與安裝後 hash 一致；未阻止本次配對，但不宣稱啟動 log 無錯，也未在封裝工作順手修正。
+- **尚未驗證：兩台實體電腦的自動探索、防火牆／網路路由、遠端控制操作、跨機麥克風、完整演唱及乾淨 Windows 環境。** 本機 loopback 成功不等同這些項目通過，也不代表 T16 正式發行。
+
 ### 用 Unity 開發
 
 1. Unity Hub 登入並啟用適用授權；目前已找到 Editor：

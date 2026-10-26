@@ -71,7 +71,14 @@ The user also approved Companion's Unity 6.6 and Built-In to URP migration. Keep
 - Validate the chooser's initial selection, manual selection, reset and toggle-back in English, Japanese and both Chinese locales, then confirm the rebuilt native song-selection UI using isolated settings. Runtime logs may stop writing after the existing 250 MB daily cap; the development screen's Copy Log exposes current in-memory diagnostics without deleting user logs.
 - Verified: four localized PlayMode fixtures fail in three non-English locales before the fix and all pass after it. The rebuilt Windows player displays the actual local song and cover under isolated Traditional Chinese settings, with All Songs selected, including after leaving and revisiting selection. The existing playlist-menu test times out at its line 73 both before and after the fix; do not claim the whole playlist suite passes or equate this visibility check with singing validation.
 
+## Windows test packaging boundary
+
+- Windows LAN-test installers wrap existing Unity players; they do not change Companion protocol, scoring, settings schema or song storage. Keep main-game and Companion AppIds and installation directories separate, install per-user and preserve user data on uninstall.
+- Use the repository installer script documented in the opening guide. Package only Unity runtime files plus canonical license/media-extension resources; exclude Unity backup/debug output and private content. Do not silently change firewall rules or claim unsigned test builds are production releases.
+- Validate installed payloads, startup, connection handshake and uninstall using isolated settings. Same-machine pairing does not certify another PC's network or microphone.
+
 ## When to add another architecture skill
+
 Add one only when a domain needs independently useful, verified procedures, such as audio calibration, shared UI controls, or Companion synchronization.
 
 The new skill must include its owning components, dependency boundaries, change procedure, compatibility obligations, and focused validation. Add a discovery link from the shared instructions, and keep general rules here rather than copying them.

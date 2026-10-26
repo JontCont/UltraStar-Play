@@ -79,6 +79,12 @@ class Build : NukeBuild
             BuildMainGame("BuildSignedAndroidAppBundle");
         });
 
+    Target BuildCompanionAppWindows64 => _ => _
+        .Executes(() =>
+        {
+            BuildCompanionApp("BuildWindows64");
+        });
+
     Target BuildCompanionAppAndroidApk => _ => _
         .Executes(() =>
         {
